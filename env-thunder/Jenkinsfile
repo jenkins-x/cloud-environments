@@ -1,0 +1,20 @@
+pipeline {
+  agent {
+    kubernetes {
+      label "projectx-helm"
+      podTemplateName "projectx-helm"
+    }
+  }
+  parameters {
+    string(name: 'CHART', description: 'Chart to deploy')
+    string(name: 'VERSION', description: 'Version of chart to deploy')
+  }
+  stages {
+    stage('Helm Deployment') {
+      steps {
+        sh 'helm secrets dec secrets.yaml'
+        sh "helm install ${CHART} --version ${VERSION} --name thunder -f myvalues.yaml -f secrets.yaml.dec"
+      }
+    }
+  }
+}
