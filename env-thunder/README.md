@@ -1,6 +1,11 @@
 # Thunder is projectX's production cloud environment
 
-To install run:
+If you have not yet setup helm on your cluster then run this once:
+```
+make setup
+```
+
+Then to install run:
 
 ```
 make install
