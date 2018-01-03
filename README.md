@@ -1,6 +1,6 @@
-# projectX cloud environments
+# Jenkins X cloud environments
 
-This repository contains a number of Jenkins-X environments including cloud specific configuration and encrypted production secrets that can be applied to any kubernetes cluster via a Makefile or Jenkins Pipelines.
+This repository contains a number of [Jenkins X](https://jenkins-x.github.io/jenkins-x-website/) environments including cloud specific configuration and encrypted production secrets that can be applied to any kubernetes cluster via a Makefile or Jenkins Pipelines.
 
 # Prerequisits
 
