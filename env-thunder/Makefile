@@ -7,8 +7,8 @@ build: clean
 
 install: clean build
 	helm secrets dec secrets.yaml
-	helm install jenkins-x/$(CHART) --name $(RELEASE) -f ./myvalues.yaml -f ./secrets.yaml.dec --version $(CHART_VERSION)
+	helm install jenkins-x/$(CHART) --name $(RELEASE) -f ./myvalues.yaml -f ./secrets.yaml.dec --version $(CHART_VERSION) $(ARGS)
 
 upgrade: clean build
 	helm secrets dec secrets.yaml
-	helm upgrade $(RELEASE) jenkins-x/$(CHART) -f myvalues.yaml -f secrets.yaml.dec --version $(CHART_VERSION)
+	helm upgrade $(RELEASE) jenkins-x/$(CHART) -f myvalues.yaml -f secrets.yaml.dec --version $(CHART_VERSION) $(ARGS)
