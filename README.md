@@ -74,11 +74,32 @@ This means our entire cloud environments are competely recreatable and both conf
 
 The default credentials for test purposes are below, please either change the raw secrets.yaml files or follow the secrets section above to encrypt your own sensitive data.
 
-| Application | Username | Password |
-| ----------- |:--------:| --------:|
-| Jenkins     | admin    | admin    |
-| Nexus       | admin    | admin123 |
+| Application   | Username | Password |
+| ------------- | -------- | -------- |
+| K8S Dashboard | admin    | admin    |
+| Chartmuseum   | admin    | admin    |
+| Jenkins       | admin    | admin    |
+| Nexus         | admin    | admin123 |
+| Grafana       | admin    | admin    |
+
+
+## Changing admin passwords
+
+You can override these admin passwords in the secrets.yaml of each environment.  Currently the kubernetes dashboard and chartmuseum are protected by basic auth at the nginx ingress controller layer.  To change this admin password the property to override in the helm values.yaml is `JXBasicAuth:`.
+
+So generate a new password using:
+```
+htpasswd -c myauth admin
+New password:
+Re-type new password:
+```
+now look inside the generated `myauth` file to grap the new value to use
+```
+cat myauth
+```
+Now you can override the `JXBasicAuth:` property in your secrets.yaml
 
 # Local developement
 
 This repo is for installing a released platform version.  If you want to develop and contribute please head over to the https://github.com/jenkins-x/jenkins-x-platform repo.
+
