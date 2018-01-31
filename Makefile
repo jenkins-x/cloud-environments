@@ -1,6 +1,6 @@
 CHART_REPO := http://chartmuseum.cd.thunder.fabric8.io
 CHART := jenkins-x-platform
-CHART_VERSION := 0.0.31
+CHART_VERSION := 0.0.33
 OS := $(shell uname)
 HELM := $(shell command -v helm 2> /dev/null)
 WATCH := $(shell command -v watch --help 2> /dev/null)
