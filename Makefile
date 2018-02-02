@@ -1,4 +1,4 @@
-CHART_REPO := http://chartmuseum.cd.thunder.fabric8.io
+CHART_REPO := http://chartmuseum.build.cd.jenkins-x.io
 CHART := jenkins-x-platform
 CHART_VERSION := 0.0.37
 OS := $(shell uname)
