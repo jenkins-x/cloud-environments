@@ -4,7 +4,7 @@ pipeline {
         GKE_SA = credentials('gke-sa')
     }
     agent {
-        label "jenkins-jx-base"
+        label "jenkins-go"
     }
     stages {
         stage('CI Build') {
@@ -18,12 +18,20 @@ pipeline {
                 SERVICE_ACCOUNT_FILE = "$GKE_SA"
             }
             steps {
-                container('jx-base') {
+                container('go') {
+                    
                     sh "./jx/scripts/ci-gke.sh"
+                    input 'ok?'
+                    retry(3){
+                        sh "jx create jenkins user --headless --password admin admin"
+                    }
+                    sh "helm init --client-only"
+                    git "https://github.com/jenkins-x/godog-jenkins"
+                    sh "make bdd-cluster"
                 }
             }
         }
-    
+
         stage('Build and Push Release') {
             when {
                 branch 'master'
