@@ -19,15 +19,15 @@ pipeline {
             }
             steps {
                 container('go') {
-                    
                     sh "./jx/scripts/ci-gke.sh"
-                    input 'ok?'
                     retry(3){
                         sh "jx create jenkins user --headless --password admin admin"
                     }
-                    sh "helm init --client-only"
-                    git "https://github.com/jenkins-x/godog-jenkins"
-                    sh "make bdd-cluster"
+
+                    dir ('/home/jenkins/go/src/github.com/jenkins-x/godog-jenkins'){
+                        git "https://github.com/jenkins-x/godog-jenkins"
+                        sh "make bdd-cluster"
+                    }
                 }
             }
         }
