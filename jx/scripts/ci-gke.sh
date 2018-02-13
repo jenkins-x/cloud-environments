@@ -14,6 +14,5 @@ jx create cluster gke -n ${CLUSTER_NAME,,} \
     --git-username $GH_CREDS_USR \
     --git-api-token $GH_CREDS_PSW \
     --git-provider-url github.com
-  
-# lets ensure there's a jenkins API token so we can add projects  
-# jx create jenkins user  --password admin admin
+
+jx namespace jx
