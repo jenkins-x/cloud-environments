@@ -23,7 +23,7 @@ pipeline {
                 container('go') {
                     sh "./jx/scripts/ci-gke.sh"
                     retry(3){
-                        sh "jx create jenkins user --headless --password $TEST_PASSWORD test-user"
+                        sh "jx create jenkins user --headless --password $TEST_PASSWORD admin"
                     }
 
                     dir ('/home/jenkins/go/src/github.com/jenkins-x/godog-jenkins'){
