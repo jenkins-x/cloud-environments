@@ -17,7 +17,7 @@ pipeline {
                 ZONE = "europe-west1-b"
                 PROJECT_ID = "jenkinsx-dev"
                 SERVICE_ACCOUNT_FILE = "$GKE_SA"
-                TEST_PASSWORD = "$TEST_USER_CREDS_PSW"
+                TEST_PASSWORD = "$TEST_USER_PSW"
             }
             steps {
                 container('go') {
