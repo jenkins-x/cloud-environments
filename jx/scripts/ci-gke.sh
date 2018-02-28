@@ -13,6 +13,7 @@ jx create cluster gke -n ${CLUSTER_NAME,,} \
     --num-nodes 2 \
     --git-username $GH_CREDS_USR \
     --git-api-token $GH_CREDS_PSW \
+    --default-admin-password $TEST_PASSWORD \
     --git-provider-url github.com \
     --local-cloud-environment=true \
     --default-environments=false
