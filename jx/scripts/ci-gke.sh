@@ -18,6 +18,7 @@ jx create cluster gke -n ${CLUSTER_NAME,,} \
     --git-provider-url ${GIT_PROVIDER_URL} \
     --local-cloud-environment=true \
     --default-environment-prefix=b${BUILD_NUMBER} \
+    --environment-git-owner=jenkins-x-tests \
     --default-environments=false
 
 jx namespace jx
