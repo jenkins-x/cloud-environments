@@ -4,7 +4,7 @@ set -x
 
 gcloud auth activate-service-account --key-file $SERVICE_ACCOUNT_FILE
 
-jx create cluster gke -n ${CLUSTER_NAME,,}-${BUILD_NUMBER} \
+jx create cluster gke -n ${CLUSTER_NAME,,} \
     --skip-login=true \
     --batch-mode \
     --labels kind=bdd,git=ghe \

@@ -14,7 +14,7 @@ pipeline {
                 branch 'PR-*'
             }
             environment {
-                CLUSTER_NAME = "JXCE-$BRANCH_NAME"
+                CLUSTER_NAME = "JXCE-$BRANCH_NAME-$BUILD_NUMBER"
                 ZONE = "europe-west1-b"
                 PROJECT_ID = "jenkinsx-dev"
                 SERVICE_ACCOUNT_FILE = "$GKE_SA"
