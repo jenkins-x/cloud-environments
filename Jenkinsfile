@@ -30,9 +30,11 @@ pipeline {
                     }
                     sh "./jx/scripts/ci-gke.sh"
 
+/*
                     retry(3){
                         sh "jx create jenkins user --headless --password $JENKINS_PASSWORD admin"
                     }
+*/
 
                     dir ('/home/jenkins/go/src/github.com/jenkins-x/godog-jx'){
                         git "https://github.com/jenkins-x/godog-jx"
