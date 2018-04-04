@@ -3,6 +3,7 @@ pipeline {
         GH_CREDS = credentials('jenkins-x-github')
         GKE_SA = credentials('gke-sa')
         GHE_CREDS = credentials('ghe-test-user')
+        JENKINS_CREDS = credentials('test-jenkins-user')
         GIT_PROVIDER_URL = "https://github.beescloud.com"
     }
     agent {
@@ -19,6 +20,7 @@ pipeline {
                 PROJECT_ID = "jenkinsx-dev"
                 SERVICE_ACCOUNT_FILE = "$GKE_SA"
                 GHE_TOKEN = "$GHE_CREDS_PSW"
+                JENKINS_PASSWORD="$JENKINS_CREDS_PSW"
             }
             steps {
                 container('go') {
@@ -29,7 +31,7 @@ pipeline {
                     sh "./jx/scripts/ci-gke.sh"
 
                     retry(3){
-                        sh "jx create jenkins user --headless --password $TEST_PASSWORD admin"
+                        sh "jx create jenkins user --headless --password $JENKINS_PASSWORD admin"
                     }
 
                     dir ('/home/jenkins/go/src/github.com/jenkins-x/godog-jx'){

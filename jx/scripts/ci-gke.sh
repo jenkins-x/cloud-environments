@@ -12,12 +12,9 @@ jx create cluster gke -n ${CLUSTER_NAME,,} \
     --zone ${ZONE} \
     --machine-type n1-standard-2 \
     --num-nodes 3 \
-    --default-admin-password $TEST_PASSWORD \
+    --default-admin-password $JENKINS_PASSWORD \
     --git-provider-url ${GIT_PROVIDER_URL} \
     --local-cloud-environment=true \
     --default-environment-prefix=b${BUILD_NUMBER} \
     --environment-git-owner=jenkins-x-tests
-#    --git-username $GH_CREDS_USR \
-#    --git-api-token $GH_CREDS_PSW \
-
 jx namespace jx
