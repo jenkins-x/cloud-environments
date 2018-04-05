@@ -42,11 +42,11 @@ pipeline {
                     }
                 }
             }
-        }
-        post {
-            always {
-                echo 'Lets hang around....'
-                input "OK to terminate?"
+            post {
+                always {
+                    echo 'Lets hang around....'
+                    input "OK to terminate?"
+                }
             }
         }
 
