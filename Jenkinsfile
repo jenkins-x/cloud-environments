@@ -2,7 +2,9 @@ pipeline {
     environment {
         GH_CREDS = credentials('jenkins-x-github')
         GKE_SA = credentials('gke-sa')
-        TEST_USER = credentials('test-user')
+        GHE_CREDS = credentials('ghe-test-user')
+        JENKINS_CREDS = credentials('test-jenkins-user')
+        GIT_PROVIDER_URL = "https://github.beescloud.com"
     }
     agent {
         label "jenkins-go"
@@ -13,23 +15,37 @@ pipeline {
                 branch 'PR-*'
             }
             environment {
-                CLUSTER_NAME = "JXCE-$BRANCH_NAME"
+                CLUSTER_NAME = "JXCE-$BRANCH_NAME-$BUILD_NUMBER"
                 ZONE = "europe-west1-b"
                 PROJECT_ID = "jenkinsx-dev"
                 SERVICE_ACCOUNT_FILE = "$GKE_SA"
-                TEST_PASSWORD = "$TEST_USER_PSW"
+                GHE_TOKEN = "$GHE_CREDS_PSW"
+                JENKINS_PASSWORD="$JENKINS_CREDS_PSW"
             }
             steps {
                 container('go') {
+                    dir ('/home/jenkins/go/src/github.com/jenkins-x/godog-jx'){
+                        git "https://github.com/jenkins-x/godog-jx"
+                        sh "make configure-ghe"
+                    }
                     sh "./jx/scripts/ci-gke.sh"
-                    retry(3){
-                        sh "jx create jenkins user --headless --password $TEST_PASSWORD admin"
-                    }
 
-                    dir ('/home/jenkins/go/src/github.com/jenkins-x/godog-jenkins'){
-                        git "https://github.com/jenkins-x/godog-jenkins"
-                        sh "make bdd-cluster"
+/*
+                    retry(3){
+                        sh "jx create jenkins user --headless --password $JENKINS_PASSWORD admin"
                     }
+*/
+
+                    dir ('/home/jenkins/go/src/github.com/jenkins-x/godog-jx'){
+                        git "https://github.com/jenkins-x/godog-jx"
+                        sh "make bdd-tests"
+                    }
+                }
+            }
+            post {
+                always {
+                    echo 'Lets hang around....'
+                    input "OK to terminate?"
                 }
             }
         }

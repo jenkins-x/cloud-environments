@@ -7,15 +7,14 @@ gcloud auth activate-service-account --key-file $SERVICE_ACCOUNT_FILE
 jx create cluster gke -n ${CLUSTER_NAME,,} \
     --skip-login=true \
     --batch-mode \
+    --labels kind=bdd,git=ghe \
     --project-id ${PROJECT_ID} \
     --zone ${ZONE} \
     --machine-type n1-standard-2 \
-    --num-nodes 2 \
-    --git-username $GH_CREDS_USR \
-    --git-api-token $GH_CREDS_PSW \
-    --default-admin-password $TEST_PASSWORD \
-    --git-provider-url github.com \
+    --min-num-nodes=3 --max-num-nodes=5 \
+    --default-admin-password $JENKINS_PASSWORD \
+    --git-provider-url ${GIT_PROVIDER_URL} \
     --local-cloud-environment=true \
-    --default-environments=false
-
+    --default-environment-prefix=b${BUILD_NUMBER} \
+    --environment-git-owner=jenkins-x-tests
 jx namespace jx
