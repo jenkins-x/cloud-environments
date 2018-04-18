@@ -11,7 +11,7 @@ jx create cluster gke -n ${CLUSTER_NAME,,} \
     --project-id ${PROJECT_ID} \
     --zone ${ZONE} \
     --machine-type n1-standard-2 \
-    --num-nodes 3 \
+    --min-num-nodes=3 --max-num-nodes=5 \
     --default-admin-password $JENKINS_PASSWORD \
     --git-provider-url ${GIT_PROVIDER_URL} \
     --local-cloud-environment=true \
