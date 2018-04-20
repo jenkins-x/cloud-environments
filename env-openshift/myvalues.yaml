@@ -9,5 +9,5 @@ exposecontroller:
 monocular:
   mongodb:
     persistence:
-      enabled: "false"    
+      enabled: false    
             
