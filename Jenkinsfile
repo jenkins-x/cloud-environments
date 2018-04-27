@@ -27,9 +27,10 @@ pipeline {
                     dir ('/home/jenkins/go/src/github.com/jenkins-x/godog-jx'){
                         git "https://github.com/jenkins-x/godog-jx"
                         sh "make configure-ghe"
-                    }
+                    }                    
                     sh "./jx/scripts/ci-gke.sh"
-
+                    sh "jx version -b"
+                    
 /*
                     retry(3){
                         sh "jx create jenkins user --headless --password $JENKINS_PASSWORD admin"
