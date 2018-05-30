@@ -43,12 +43,6 @@ pipeline {
                     }
                 }
             }
-            post {
-                always {
-                    echo 'Lets hang around....'
-                    input "OK to terminate?"
-                }
-            }
         }
 
         stage('Build and Push Release') {
