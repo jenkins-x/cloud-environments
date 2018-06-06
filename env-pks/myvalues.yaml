@@ -1,0 +1,116 @@
+# Override configuration from https://github.com/jenkins-x/jenkins-x-platform/blob/master/values.yaml
+
+jenkins:
+  Agent:
+    PodTemplates:
+      Maven:
+        volumes:
+        - type: Secret
+          secretName: jenkins-maven-settings
+          mountPath: /root/.m2/
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: Secret
+          secretName: jenkins-release-gpg
+          mountPath: /home/jenkins/.gnupg
+        - type: HostPath
+          hostPath: /var/vcap/sys/run/docker/docker.sock
+          mountPath: /var/run/docker.sock
+      Gradle:
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: Secret
+          secretName: jenkins-release-gpg
+          mountPath: /home/jenkins/.gnupg
+        - type: HostPath
+          hostPath: /var/vcap/sys/run/docker/docker.sock
+          mountPath: /var/run/docker.sock
+      Scala:
+        volumes:
+        - type: Secret
+          secretName: jenkins-maven-settings
+          mountPath: /root/.m2/
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: Secret
+          secretName: jenkins-release-gpg
+          mountPath: /home/jenkins/.gnupg
+        - type: HostPath
+          hostPath: /var/vcap/sys/run/docker/docker.sock
+          mountPath: /var/run/docker.sock
+       Go:
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/vcap/sys/run/docker/docker.sock
+          mountPath: /var/run/docker.sock
+      Terraform:
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/vcap/sys/run/docker/docker.sock
+          mountPath: /var/run/docker.sock         
+      Rust:
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/vcap/sys/run/docker/docker.sock
+          mountPath: /var/run/docker.sock          
+      Nodejs:
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/vcap/sys/run/docker/docker.sock
+          mountPath: /var/run/docker.sock
+      JX-base:
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/vcap/sys/run/docker/docker.sock
+          mountPath: /var/run/docker.sock      
+      Python2:
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/vcap/sys/run/docker/docker.sock
+          mountPath: /var/run/docker.sock              
+      Python:
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/vcap/sys/run/docker/docker.sock
+          mountPath: /var/run/docker.sock          
+      Ruby:
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/vcap/sys/run/docker/docker.sock
+          mountPath: /var/run/docker.sock  
+      Swift:
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/vcap/sys/run/docker/docker.sock
+          mountPath: /var/run/docker.sock                  

@@ -1,1 +1,1 @@
-# Base Jenkins X generic Kubernetes environment
+# Base Jenkins X OpenShift environment

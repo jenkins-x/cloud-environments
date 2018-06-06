@@ -1,1 +1,1 @@
-# Base Jenkins X Google Container Engine environment
+# Base Jenkins X Azure Container Engine environment
