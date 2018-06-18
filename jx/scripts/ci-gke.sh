@@ -4,6 +4,11 @@ set -x
 
 gcloud auth activate-service-account --key-file $SERVICE_ACCOUNT_FILE
 
+# lets setup git 
+git config --global --add user.name JenkinsXBot
+git config --global --add user.email jenkins-x@googlegroups.com
+
+
 jx create cluster gke -n ${CLUSTER_NAME,,} \
     --skip-login=true \
     --batch-mode \
