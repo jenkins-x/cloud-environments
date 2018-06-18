@@ -7,7 +7,7 @@ pipeline {
         GIT_PROVIDER_URL = "https://github.beescloud.com"
     }
     agent {
-        label "jenkins-maven"
+        label "jenkins-go"
     }
     stages {
         stage('CI Build') {
