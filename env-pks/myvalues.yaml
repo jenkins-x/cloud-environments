@@ -1,6 +1,12 @@
 # Override configuration from https://github.com/jenkins-x/jenkins-x-platform/blob/master/values.yaml
 
 jenkins:
+  Servers:
+    # global node properties
+    Global:
+      EnvVars:
+        DOCKER_REGISTRY: harbor.corp.local
+
   # Default values for jenkins.
   # This is a YAML-formatted file.
   # Declare name/value pairs to be passed into your templates.
