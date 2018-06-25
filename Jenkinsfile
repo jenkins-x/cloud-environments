@@ -16,7 +16,7 @@ pipeline {
             }
             environment {
                 CLUSTER_NAME = "JXCE-$BRANCH_NAME-$BUILD_NUMBER"
-                ZONE = "europe-west1-c"
+                ZONE = "europe-west2-a"
                 PROJECT_ID = "jenkinsx-dev"
                 SERVICE_ACCOUNT_FILE = "$GKE_SA"
                 GHE_TOKEN = "$GHE_CREDS_PSW"
