@@ -1,1 +1,0 @@
-# Base Jenkins X OpenShift environment
