@@ -1,4 +1,10 @@
-jenkins:
-  Persistence:
-    AccessMode: ReadWriteOnce
+chartmuseum: 
+  persistence: 
     Size: 50Gi
+jenkins: 
+  Persistence: 
+    Size: 50Gi
+monocular: 
+  mongodb: 
+    persistence: 
+      size: 50Gi
