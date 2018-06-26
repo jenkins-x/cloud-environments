@@ -1,0 +1,4404 @@
+JXBasicAuth: admin:$apr1$a/HdTrV7$XYCGJWF9PdVwVVTvjMyaU/
+
+gc-previews:
+  cronjob:
+    enabled: true
+    schedule: "0 */3 * * *"
+  args:
+    - "gc"
+    - "previews"
+
+gc-activities:
+  cronjob:
+    enabled: true
+    schedule: "0/30 */3 * * *"
+  args:
+    - "gc"
+    - "activities"
+
+expose:
+  Annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: hook-succeeded
+
+cleanup:
+  Args: 
+    - --cleanup
+  Annotations:
+    helm.sh/hook: pre-delete
+    helm.sh/hook-delete-policy: hook-succeeded
+
+docker-registry:
+  service:
+    annotations:
+      fabric8.io/expose: "true"
+      fabric8.io/ingress.annotations: "kubernetes.io/ingress.class: nginx\nnginx.ingress.kubernetes.io/proxy-body-size: 2g"
+  persistence:
+    accessMode: 'ReadWriteOnce'
+    enabled: true
+    size: 100Gi
+
+kubernetes-dashboard:
+  serviceAnnotations:
+    fabric8.io/expose: "true"
+    fabric8.io/ingress.annotations: "kubernetes.io/ingress.class: nginx\nnginx.ingress.kubernetes.io/auth-type: basic\nnginx.ingress.kubernetes.io/auth-secret: jx-basic-auth"
+
+nexus:
+  service:
+    annotations:
+      fabric8.io/expose: "true"
+      fabric8.io/ingress.annotations: "kubernetes.io/ingress.class: nginx"
+
+chartmuseum:
+  service:
+    annotations:
+      fabric8.io/expose: "true"
+      fabric8.io/ingress.annotations: "kubernetes.io/ingress.class: nginx"
+  persistence:
+    Enabled: true
+    AccessMode: ReadWriteOnce
+    Size: 50Gi
+  env:
+    open:
+      AUTH_ANONYMOUS_GET: true
+      DISABLE_API: false
+    secret:
+      BASIC_AUTH_USER: admin
+      BASIC_AUTH_PASS: admin
+  image:
+    tag: v0.2.8
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 160m
+      memory: 128Mi
+
+monocular:
+    ingress:
+      enabled: false
+    api:
+      livenessProbe:
+        initialDelaySeconds: 360
+      replicaCount: 1
+      service:
+        type: ClusterIP
+        annotations:
+          fabric8.io/expose: "true"
+          fabric8.io/ingress.name: "monocular"
+          fabric8.io/ingress.path: "/api/"
+          fabric8.io/ingress.annotations: "kubernetes.io/ingress.class: nginx\nnginx.ingress.kubernetes.io/rewrite-target: /\nnginx.ingress.kubernetes.io/ingress.class: nginx"
+      config:
+        repos:
+          - name: chartmuseum
+            url: http://jenkins-x-chartmuseum:8080
+            source: https://github.com/jenkins-x/jenkins-x-platfrom
+        cacheRefreshInterval: 30
+        releasesEnabled: false
+    ui:
+      appName: Jenkins X Apps
+      replicaCount: 1
+      service:
+        type: ClusterIP
+        annotations:
+          fabric8.io/expose: "true"
+          fabric8.io/ingress.name: "monocular"
+          fabric8.io/ingress.path: "/"
+    mongodb:
+      global: {}
+      image: bitnami/mongodb:3.4.9-r1
+      persistence:
+        accessMode: ReadWriteOnce
+        enabled: true
+        size: 50Gi
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+      serviceType: ClusterIP
+    prerender:
+      service:
+        type: ClusterIP
+jenkins:
+  # Default values for jenkins.
+  # This is a YAML-formatted file.
+  # Declare name/value pairs to be passed into your templates.
+  # name: value
+  Master:
+    Name: jenkins-master
+    # Image: "jenkinsci/jenkins"
+    # ImageTag: "2.89"
+    Image: "jenkinsxio/jenkinsx"
+    ImageTag: "0.0.25"
+    ImagePullPolicy: "IfNotPresent"
+    Component: "jenkins-master"
+    UseSecurity: true
+    AdminUser: admin
+  # AdminPassword: <defaults to random>
+    AdminPassword: admin
+    Cpu: "200m"
+    Memory: "256Mi"
+  # Set min/max heap here if needed with:
+  # JavaOpts: "-Xms512m -Xmx512m"
+    JavaOpts: >
+      -Dhudson.slaves.NodeProvisioner.initialDelay=0
+      -Dhudson.slaves.NodeProvisioner.MARGIN=50
+      -Dhudson.slaves.NodeProvisioner.MARGIN0=0.85
+      -Djenkins.displayurl.provider=org.jenkinsci.plugins.blueoceandisplayurl.BlueOceanDisplayURLImpl
+  # JenkinsOpts: ""
+  # JenkinsUriPrefix: "/jenkins"
+    ServicePort: 8080
+  # For minikube, set this to NodePort, elsewhere use LoadBalancer
+  # Use ClusterIP if your setup includes ingress controller
+    ServiceType: ClusterIP
+  # Master Service annotations
+    ServiceAnnotations:
+      #   service.beta.kubernetes.io/aws-load-balancer-backend-protocol: https
+      fabric8.io/expose: "true"
+      fabric8.io/ingress.annotations: "kubernetes.io/ingress.class: nginx\nnginx.ingress.kubernetes.io/proxy-body-size: 500m"
+  # Used to create Ingress record (should used with ServiceType: ClusterIP)
+  # HostName: jenkins.cluster.local
+  # NodePort: <to set explicitly, choose port between 30000-32767
+    ContainerPort: 8080
+    SlaveListenerPort: 50000
+    # LoadBalancerSourceRanges:
+    # - 0.0.0.0/0
+  # Optionally assign a known public LB IP
+  # LoadBalancerIP: 1.2.3.4
+  # Optionally configure a JMX port
+  # requires additional JavaOpts, ie
+  # JavaOpts: >
+  #   -Dcom.sun.management.jmxremote.port=4000
+  #   -Dcom.sun.management.jmxremote.authenticate=false
+  #   -Dcom.sun.management.jmxremote.ssl=false
+  # JMXPort: 4000
+  # Used to approve a list of groovy functions in pipelines used the script-security plugin. Can be viewed under /scriptApproval
+    # ScriptApproval:
+    #   - "method groovy.json.JsonSlurperClassic parseText java.lang.String"
+    #   - "new groovy.json.JsonSlurperClassic"
+  # List of groovy init scripts to be executed during Jenkins master start
+    InitScripts:
+  #  - |
+  #    print 'adding global pipeline libraries, register properties, bootstrap jobs...'
+    CustomConfigMap: false
+  # Node labels and tolerations for pod assignment
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#taints-and-tolerations-beta-feature
+    NodeSelector: {}
+    Tolerations: {}
+  
+    Ingress:
+      Annotations:
+        # kubernetes.io/ingress.class: nginx
+        # kubernetes.io/tls-acme: "true"
+  
+      TLS:
+        # - secretName: jenkins.cluster.local
+        #   hosts:
+        #     - jenkins.cluster.local
+
+    # Overwrite the base jenkins config and any plugins during upgrades
+    Overwrite:
+      Plugins: true
+      Config: true
+
+  Servers:
+    BitbucketCloud:
+    #- Name: myname
+    #  Url: https://something.com/
+    #  Credential: some-cred-name
+
+    BitbucketServer:
+    #- Name: myname
+    #  Url: https://something.com/
+    #  Credential: some-cred-name
+
+    GHE:
+    #- Name: myname
+    #  Url: https://something.com/
+    #  Credential: some-cred-name
+
+    Gitea:
+    #- Name: myname
+    #  Url: https://something.com/
+    #  Credential: some-cred-name
+
+    GitLab:
+    #- Name: myname
+    #  Url: https://something.com/
+    #  Credential: some-cred-name
+
+    # global node properties
+    Global:
+      EnvVars:
+        DOCKER_REGISTRY: ""
+
+  Agent:
+    Enabled: true
+
+    Component: "jenkins-agent"
+
+    ContainerCap: 0
+
+    # Key Value selectors. Ex:
+    # jenkins-agent: v1
+    PodTemplates:
+      Maven:
+        Name: maven
+        Label: jenkins-maven
+        volumes:
+        - type: Secret
+          secretName: jenkins-maven-settings
+          mountPath: /root/.m2/
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: Secret
+          secretName: jenkins-release-gpg
+          mountPath: /home/jenkins/.gnupg
+        - type: HostPath
+          hostPath: /var/run/docker.sock
+          mountPath: /var/run/docker.sock
+        EnvVars:
+          JENKINS_URL: http://jenkins:8080
+          _JAVA_OPTIONS: '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Dsun.zip.disableMemoryMapping=true -XX:+UseParallelGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Xms10m -Xmx192m'
+          GIT_COMMITTER_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_NAME: jenkins-x-bot
+          GIT_COMMITTER_NAME: jenkins-x-bot
+          XDG_CONFIG_HOME: /home/jenkins
+          DOCKER_CONFIG: /home/jenkins/.docker/
+        ServiceAccount: jenkins
+        Containers:
+          Jnlp:
+            Image: jenkinsci/jnlp-slave:3.14-1
+            RequestCpu: "100m"
+            RequestMemory: "128Mi"
+            Args: '${computer.jnlpmac} ${computer.name}'
+          Maven:
+            Image: jenkinsxio/builder-maven:0.0.310
+            Privileged: true
+            RequestCpu: "400m"
+            RequestMemory: "512Mi"
+            LimitCpu: "1"
+            LimitMemory: "1024Mi"
+            # You may want to change this to true while testing a new image
+            # AlwaysPullImage: true
+            Command: "/bin/sh -c"
+            Args: "cat"
+            Tty: true
+      Gradle:
+        Name: gradle
+        Label: jenkins-gradle
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: Secret
+          secretName: jenkins-release-gpg
+          mountPath: /home/jenkins/.gnupg
+        - type: HostPath
+          hostPath: /var/run/docker.sock
+          mountPath: /var/run/docker.sock
+        EnvVars:
+          JENKINS_URL: http://jenkins:8080
+          _JAVA_OPTIONS: '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Dsun.zip.disableMemoryMapping=true -XX:+UseParallelGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Xms10m -Xmx192m'
+          GIT_COMMITTER_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_NAME: jenkins-x-bot
+          GIT_COMMITTER_NAME: jenkins-x-bot
+          XDG_CONFIG_HOME: /home/jenkins
+          DOCKER_CONFIG: /home/jenkins/.docker/
+        ServiceAccount: jenkins
+        Containers:
+          Jnlp:
+            Image: jenkinsci/jnlp-slave:3.14-1
+            RequestCpu: "100m"
+            RequestMemory: "128Mi"
+            Args: '${computer.jnlpmac} ${computer.name}'
+          Gradle:
+            Image: jenkinsxio/builder-gradle:0.0.192
+            Privileged: true
+            RequestCpu: "400m"
+            RequestMemory: "512Mi"
+            LimitCpu: "1"
+            LimitMemory: "1024Mi"
+            # You may want to change this to true while testing a new image
+            # AlwaysPullImage: true
+            Command: "/bin/sh -c"
+            Args: "cat"
+            Tty: true
+      Scala:
+        Name: scala
+        Label: jenkins-scala
+        volumes:
+        - type: Secret
+          secretName: jenkins-maven-settings
+          mountPath: /root/.m2/
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: Secret
+          secretName: jenkins-release-gpg
+          mountPath: /home/jenkins/.gnupg
+        - type: HostPath
+          hostPath: /var/run/docker.sock
+          mountPath: /var/run/docker.sock
+        EnvVars:
+          JENKINS_URL: http://jenkins:8080
+          _JAVA_OPTIONS: '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Dsun.zip.disableMemoryMapping=true -XX:+UseParallelGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Xms10m -Xmx192m'
+          GIT_COMMITTER_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_NAME: jenkins-x-bot
+          GIT_COMMITTER_NAME: jenkins-x-bot
+          XDG_CONFIG_HOME: /home/jenkins
+          DOCKER_CONFIG: /home/jenkins/.docker/
+        ServiceAccount: jenkins
+        Containers:
+          Jnlp:
+            Image: jenkinsci/jnlp-slave:3.14-1
+            RequestCpu: "100m"
+            RequestMemory: "128Mi"
+            Args: '${computer.jnlpmac} ${computer.name}'
+          Scala:
+            Image: jenkinsxio/builder-scala:0.0.125
+            Privileged: true
+            RequestCpu: "400m"
+            RequestMemory: "512Mi"
+            LimitCpu: "1"
+            LimitMemory: "1024Mi"
+            # You may want to change this to true while testing a new image
+            # AlwaysPullImage: true
+            Command: "/bin/sh -c"
+            Args: "cat"
+            Tty: true
+      Go:
+        Name: go
+        Label: jenkins-go
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/run/docker.sock
+          mountPath: /var/run/docker.sock
+        EnvVars:
+          JENKINS_URL: http://jenkins:8080
+          GIT_COMMITTER_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_NAME: jenkins-x-bot
+          GIT_COMMITTER_NAME: jenkins-x-bot
+          XDG_CONFIG_HOME: /home/jenkins
+          DOCKER_CONFIG: /home/jenkins/.docker/
+        ServiceAccount: jenkins
+        Containers:
+          Jnlp:
+            Image: jenkinsci/jnlp-slave:3.14-1
+            RequestCpu: "100m"
+            RequestMemory: "128Mi"
+            Args: '${computer.jnlpmac} ${computer.name}'
+          Go:
+            Image: jenkinsxio/builder-go:0.0.301
+            Privileged: true
+            RequestCpu: "400m"
+            RequestMemory: "600Mi"
+            LimitCpu: "1"
+            LimitMemory: "1448Mi"
+            # You may want to change this to true while testing a new image
+            # AlwaysPullImage: true
+            Command: "/bin/sh -c"
+            Args: "cat"
+            Tty: true
+      Terraform:
+        Name: terraform
+        Label: jenkins-terraform
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/run/docker.sock
+          mountPath: /var/run/docker.sock
+        EnvVars:
+          JENKINS_URL: http://jenkins:8080
+          GIT_COMMITTER_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_NAME: jenkins-x-bot
+          GIT_COMMITTER_NAME: jenkins-x-bot
+          XDG_CONFIG_HOME: /home/jenkins
+          DOCKER_CONFIG: /home/jenkins/.docker/
+        ServiceAccount: jenkins
+        Containers:
+          Jnlp:
+            Image: jenkinsci/jnlp-slave:3.14-1
+            RequestCpu: "100m"
+            RequestMemory: "128Mi"
+            Args: '${computer.jnlpmac} ${computer.name}'
+          Terraform:
+            Image: jenkinsxio/builder-terraform:0.0.80
+            Privileged: true
+            RequestCpu: "400m"
+            RequestMemory: "600Mi"
+            LimitCpu: "1"
+            LimitMemory: "1448Mi"
+            # You may want to change this to true while testing a new image
+            # AlwaysPullImage: true
+            Command: "/bin/sh -c"
+            Args: "cat"
+            Tty: true
+      Rust:
+        Name: rust
+        Label: jenkins-rust
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/run/docker.sock
+          mountPath: /var/run/docker.sock
+        EnvVars:
+          JENKINS_URL: http://jenkins:8080
+          GIT_COMMITTER_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_NAME: jenkins-x-bot
+          GIT_COMMITTER_NAME: jenkins-x-bot
+          XDG_CONFIG_HOME: /home/jenkins
+          DOCKER_CONFIG: /home/jenkins/.docker/
+        ServiceAccount: jenkins
+        Containers:
+          Jnlp:
+            Image: jenkinsci/jnlp-slave:3.14-1
+            RequestCpu: "100m"
+            RequestMemory: "128Mi"
+            Args: '${computer.jnlpmac} ${computer.name}'
+          Rust:
+            Image: jenkinsxio/builder-rust:0.0.151
+            Privileged: true
+            RequestCpu: "400m"
+            RequestMemory: "512Mi"
+            LimitCpu: "1"
+            LimitMemory: "1024Mi"
+            # You may want to change this to true while testing a new image
+            # AlwaysPullImage: true
+            Command: "/bin/sh -c"
+            Args: "cat"
+            Tty: true
+      Nodejs:
+        Name: nodejs
+        # ServiceAccount: fooo
+        Label: jenkins-nodejs
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/run/docker.sock
+          mountPath: /var/run/docker.sock
+        EnvVars:
+          JENKINS_URL: http://jenkins:8080
+          GIT_COMMITTER_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_NAME: jenkins-x-bot
+          GIT_COMMITTER_NAME: jenkins-x-bot
+          XDG_CONFIG_HOME: /home/jenkins
+          DOCKER_CONFIG: /home/jenkins/.docker/
+        ServiceAccount: jenkins
+        Containers:
+          Jnlp:
+            Image: jenkinsci/jnlp-slave:3.14-1
+            RequestCpu: "100m"
+            RequestMemory: "128Mi"
+            Args: '${computer.jnlpmac} ${computer.name}'
+          Nodejs:
+            Image: jenkinsxio/builder-nodejs:0.0.254
+            Privileged: true
+            RequestCpu: "400m"
+            RequestMemory: "512Mi"
+            LimitCpu: "2"
+            LimitMemory: "2048Mi"
+            # You may want to change this to true while testing a new image
+            # AlwaysPullImage: true
+            Command: "/bin/sh -c"
+            Args: "cat"
+            Tty: true
+      JX-base:
+        Name: jx-base
+        Label: jenkins-jx-base
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/run/docker.sock
+          mountPath: /var/run/docker.sock
+        EnvVars:
+          JENKINS_URL: http://jenkins:8080
+          GIT_COMMITTER_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_NAME: jenkins-x-bot
+          GIT_COMMITTER_NAME: jenkins-x-bot
+          XDG_CONFIG_HOME: /home/jenkins
+          DOCKER_CONFIG: /home/jenkins/.docker/
+        ServiceAccount: jenkins
+        Containers:
+          Jnlp:
+            Image: jenkinsci/jnlp-slave:3.14-1
+            RequestCpu: "100m"
+            RequestMemory: "128Mi"
+            Args: '${computer.jnlpmac} ${computer.name}'
+          JX-base:
+            Image: jenkinsxio/builder-base:0.0.342
+            Privileged: true
+            RequestCpu: "200m"
+            RequestMemory: "256Mi"
+            LimitCpu: "400m"
+            LimitMemory: "512Mi"
+            # You may want to change this to true while testing a new image
+            # AlwaysPullImage: true
+            Command: "/bin/sh -c"
+            Args: "cat"
+            Tty: true
+      Python2:
+        Name: python2
+        # ServiceAccount: fooo
+        Label: jenkins-python2
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/run/docker.sock
+          mountPath: /var/run/docker.sock
+        EnvVars:
+          JENKINS_URL: http://jenkins:8080
+          GIT_COMMITTER_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_NAME: jenkins-x-bot
+          GIT_COMMITTER_NAME: jenkins-x-bot
+          XDG_CONFIG_HOME: /home/jenkins
+          DOCKER_CONFIG: /home/jenkins/.docker/
+        ServiceAccount: jenkins
+        Containers:
+          Jnlp:
+            Image: jenkinsci/jnlp-slave:3.14-1
+            RequestCpu: "100m"
+            RequestMemory: "128Mi"
+            Args: '${computer.jnlpmac} ${computer.name}'
+          Python:
+            Image: jenkinsxio/builder-python2:0.0.74
+            Privileged: true
+            RequestCpu: "400m"
+            RequestMemory: "512Mi"
+            LimitCpu: "2"
+            LimitMemory: "2048Mi"
+            # You may want to change this to true while testing a new image
+            # AlwaysPullImage: true
+            Command: "/bin/sh -c"
+            Args: "cat"
+            Tty: true
+      Python:
+        Name: python
+        # ServiceAccount: fooo
+        Label: jenkins-python
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/run/docker.sock
+          mountPath: /var/run/docker.sock
+        EnvVars:
+          JENKINS_URL: http://jenkins:8080
+          GIT_COMMITTER_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_NAME: jenkins-x-bot
+          GIT_COMMITTER_NAME: jenkins-x-bot
+          XDG_CONFIG_HOME: /home/jenkins
+          DOCKER_CONFIG: /home/jenkins/.docker/
+        ServiceAccount: jenkins
+        Containers:
+          Jnlp:
+            Image: jenkinsci/jnlp-slave:3.14-1
+            RequestCpu: "100m"
+            RequestMemory: "128Mi"
+            Args: '${computer.jnlpmac} ${computer.name}'
+          Python:
+            Image: jenkinsxio/builder-python:0.0.75
+            Privileged: true
+            RequestCpu: "400m"
+            RequestMemory: "512Mi"
+            LimitCpu: "2"
+            LimitMemory: "2048Mi"
+            # You may want to change this to true while testing a new image
+            # AlwaysPullImage: true
+            Command: "/bin/sh -c"
+            Args: "cat"
+            Tty: true
+      Ruby:
+        Name: ruby
+        # ServiceAccount: fooo
+        Label: jenkins-ruby
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/run/docker.sock
+          mountPath: /var/run/docker.sock
+        EnvVars:
+          JENKINS_URL: http://jenkins:8080
+          GIT_COMMITTER_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_NAME: jenkins-x-bot
+          GIT_COMMITTER_NAME: jenkins-x-bot
+          XDG_CONFIG_HOME: /home/jenkins
+          DOCKER_CONFIG: /home/jenkins/.docker/
+        ServiceAccount: jenkins
+        Containers:
+          Jnlp:
+            Image: jenkinsci/jnlp-slave:3.14-1
+            RequestCpu: "100m"
+            RequestMemory: "128Mi"
+            Args: '${computer.jnlpmac} ${computer.name}'
+          Ruby:
+            Image: jenkinsxio/builder-ruby:0.0.342
+            Privileged: true
+            RequestCpu: "400m"
+            RequestMemory: "512Mi"
+            LimitCpu: "2"
+            LimitMemory: "2048Mi"
+            # You may want to change this to true while testing a new image
+            # AlwaysPullImage: true
+            Command: "/bin/sh -c"
+            Args: "cat"
+            Tty: true
+      Swift:
+        Name: swift
+        # ServiceAccount: fooo
+        Label: jenkins-swift
+        volumes:
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+        - type: HostPath
+          hostPath: /var/run/docker.sock
+          mountPath: /var/run/docker.sock
+        EnvVars:
+          JENKINS_URL: http://jenkins:8080
+          GIT_COMMITTER_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_EMAIL: jenkins-x@googlegroups.com
+          GIT_AUTHOR_NAME: jenkins-x-bot
+          GIT_COMMITTER_NAME: jenkins-x-bot
+          XDG_CONFIG_HOME: /home/jenkins
+          DOCKER_CONFIG: /home/jenkins/.docker/
+        ServiceAccount: jenkins
+        Containers:
+          Jnlp:
+            Image: jenkinsci/jnlp-slave:3.14-1
+            RequestCpu: "100m"
+            RequestMemory: "128Mi"
+            Args: '${computer.jnlpmac} ${computer.name}'
+          Swift:
+            Image: jenkinsxio/builder-swift:0.0.342
+            Privileged: true
+            RequestCpu: "400m"
+            RequestMemory: "512Mi"
+            LimitCpu: "2"
+            LimitMemory: "2048Mi"
+            # You may want to change this to true while testing a new image
+            # AlwaysPullImage: true
+            Command: "/bin/sh -c"
+            Args: "cat"
+            Tty: true
+  Persistence:
+    Enabled: true
+    ## A manually managed Persistent Volume and Claim
+    ## Requires Persistence.Enabled: true
+    ## If defined, PVC must be created manually before volume will be bound
+    # ExistingClaim:
+  
+    ## jenkins data Persistent Volume Storage Class
+    ## If defined, storageClassName: <storageClass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    ##
+    # StorageClass: "-"
+  
+    AccessMode: ReadWriteOnce
+    Size: 50Gi
+    volumes:
+  #  - name: nothing
+  #    emptyDir: {}
+    mounts:
+  #  - mountPath: /var/nothing
+  #    name: nothing
+  #    readOnly: true
+  
+  NetworkPolicy:
+    # Enable creation of NetworkPolicy resources.
+    Enabled: false
+    # For Kubernetes v1.4, v1.5 and v1.6, use 'extensions/v1beta1'
+    # For Kubernetes v1.7, use 'networking.k8s.io/v1'
+    ApiVersion: extensions/v1beta1
+  
+  ## Install Default RBAC roles and bindings
+  rbac:
+    install: true
+    serviceAccountName: jenkins
+    # RBAC api version (currently either v1beta1 or v1alpha1)
+    apiVersion: v1beta1
+    # Cluster role reference
+    roleRef: cluster-admin
+
+
+PipelineSecrets:
+  # used by pipelines to tag new releases
+  GitCreds: |-
+      https://jenkins-x-bot@github.com
+  DockerConfig: |-
+      {}
+  GithubToken:
+  NPMToken:
+  PipelineSecrets:
+      pubring:
+      secjenkins:
+      secring:
+      trustdb:
+  SSHConfig: |-
+      Host github.com
+          User git
+          IdentityFile /root/.ssh-git/ssh-key
+          StrictHostKeyChecking no
+  MavenSettingsXML: |-
+      <settings>
+          <!-- sets the local maven repository outside of the ~/.m2 folder for easier mounting of secrets and repo -->
+          <localRepository>${user.home}/.mvnrepository</localRepository>
+          <!-- lets disable the download progress indicator that fills up logs -->
+          <interactiveMode>false</interactiveMode>
+          <mirrors>
+              <mirror>
+              <id>nexus</id>
+              <mirrorOf>external:*</mirrorOf>
+              <url>http://nexus:8081/repository/maven-group/</url>
+              </mirror>
+          </mirrors>
+          <servers>
+              <server>
+              <id>local-nexus</id>
+              <username>admin</username>
+              <password>admin123</password>
+          </server>
+          <server>
+              <id>oss-sonatype-staging</id>
+              <username></username>
+              <password></password>
+              </server>
+          </servers>
+          <profiles>
+              <profile>
+                  <id>nexus</id>
+                  <properties>
+                      <altDeploymentRepository>local-nexus::default::http://nexus:8081/repository/maven-snapshots/</altDeploymentRepository>
+                      <altReleaseDeploymentRepository>local-nexus::default::http://nexus:8081/repository/maven-releases/</altReleaseDeploymentRepository>
+                      <altSnapshotDeploymentRepository>local-nexus::default::http://nexus:8081/repository/maven-snapshots/</altSnapshotDeploymentRepository>
+                  </properties>
+              </profile>
+              <profile>
+                  <id>release</id>
+                  <properties>
+                      <gpg.executable>gpg</gpg.executable>
+                      <gpg.passphrase>mysecretpassphrase</gpg.passphrase>
+                  </properties>
+              </profile>
+          </profiles>
+          <activeProfiles>
+              <!--make the profile active all the time -->
+              <activeProfile>nexus</activeProfile>
+          </activeProfiles>
+      </settings>
+
+grafana:
+  server:
+    adminUser: "admin"
+    adminPassword: "admin"
+
+    ## Pass the plugins you want installed as a comma seperated list.
+    ## This will pass each plugin name to `grafana-cli plugins install ${plugin}`.
+    ## Ref: https://github.com/grafana/grafana-docker#installing-plugins-for-grafana-3
+    ##
+    # installPlugins:
+
+    # Set datasource in beginning
+    setDatasource:
+      ## If true, an initial Grafana Datasource will be set
+      enabled: true
+
+      # How long should it take to commit failure
+      # Default: 300
+      #
+      activeDeadlineSeconds: 1000
+
+      # Curl Docker image
+      # Default: appropriate/curl:latest
+      #
+      image: appropriate/curl:latest
+      restartPolicy: OnFailure
+
+      # This assembles how curl post into Grafana
+      # Ref1: http://docs.grafana.org/reference/http_api/#create-data-source
+      # Ref2: https://github.com/grafana/grafana/issues/1789
+      #
+      datasource:
+        # The datasource name.
+        # Default: default
+        name: prometheus
+
+        # Type of datasource
+        # Default: prometheus
+        #
+        type: prometheus
+
+        # The url of the datasource. To set correctly you need to know
+        # the right datasource name and its port ahead. Check kubernetes
+        # dashboard or describe the service should fulfill the requirements.
+        # Synatx like `http://<release name>-<server name>:<port number>
+        # Default: "http://limping-tiger-server"
+        #
+        url: "http://jenkins-x-prometheus-server:80"
+
+        # The name of the database at the datasource.
+        # Required parameter when used with elasticsearch, which refers to the index_name
+        # Default: <empty>
+        # database:
+
+        # Additional JSON data to be passed to the configuration of the datasource.
+        # The JSON data is passed to curl, therefore it needs proper quoting and
+        # escaping and needs to be on a single line. For example:
+        #  '\"esVersion\": 2, \"interval\": \"Daily\", \"timeField\": \"@timestamp\"'
+        # jsonData: null
+
+        # Specify if Grafana has to go thru proxy to reach datasource
+        # Default: proxy
+        #
+        access: proxy
+
+        # Specify should Grafana use this datasource as default
+        # Default: true
+        #
+        isDefault: true
+
+    service:
+      annotations:
+        fabric8.io/expose: "true"
+        fabric8.io/ingress.annotations: "kubernetes.io/ingress.class: nginx"
+
+  #  waiting for PR
+  # dashboardImports:
+  #   ## If true, a Job will be created to import dashboards
+  #   enabled: true
+
+  #   # How long should it take to commit failure
+  #   # Default: 300
+  #   #
+  #   activeDeadlineSeconds: 300
+
+  #   # Docker image to run import process
+  #   image: appropriate/curl:latest
+
+  #   ## Grafana dashboard files to import as ConfigMap entries
+  #   # files: {}
+
+  #   ## Grafana dashboard URL to import (this should be a JSON file, not the HTML page)
+  #   dashboards:
+  #     Prometheus_Stats.json: https://grafana.com/api/dashboards/1471/revisions/1/download
+
+  #   # Specify the Job policy
+  #   # Default: OnFailure
+  #   #
+  #   restartPolicy: OnFailure
+
+  serverDashboardFiles:
+    k8s-cluster.json: |+
+      {
+        "__inputs": [
+          {
+            "name": "prometheus",
+            "label": "Prometheus",
+            "description": "Compliant with Prometheus 1.5.2",
+            "type": "datasource",
+            "pluginId": "prometheus",
+            "pluginName": "Prometheus"
+          }
+        ],
+        "__requires": [
+          {
+            "type": "panel",
+            "id": "graph",
+            "name": "Graph",
+            "version": ""
+          },
+          {
+            "type": "panel",
+            "id": "singlestat",
+            "name": "Singlestat",
+            "version": ""
+          },
+          {
+            "type": "grafana",
+            "id": "grafana",
+            "name": "Grafana",
+            "version": "3.1.1"
+          },
+          {
+            "type": "datasource",
+            "id": "prometheus",
+            "name": "Prometheus",
+            "version": "1.3.0"
+          }
+        ],
+        "id": null,
+        "title": "Kubernetes cluster monitoring (via Prometheus)",
+        "description": "Monitors Kubernetes cluster using Prometheus. Shows overall cluster CPU / Memory / Filesystem usage as well as individual pod, containers, systemd services statistics. Uses cAdvisor metrics only.",
+        "tags": [
+          "kubernetes"
+        ],
+        "style": "dark",
+        "timezone": "browser",
+        "editable": true,
+        "hideControls": false,
+        "sharedCrosshair": false,
+        "rows": [
+          {
+            "collapse": false,
+            "editable": true,
+            "height": "200px",
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "decimals": 2,
+                "editable": true,
+                "error": false,
+                "fill": 1,
+                "grid": {
+                  "threshold1": null,
+                  "threshold1Color": "rgba(216, 200, 27, 0.27)",
+                  "threshold2": null,
+                  "threshold2Color": "rgba(234, 112, 112, 0.22)",
+                  "thresholdLine": false
+                },
+                "height": "200px",
+                "id": 32,
+                "isNew": true,
+                "legend": {
+                  "alignAsTable": false,
+                  "avg": true,
+                  "current": true,
+                  "max": false,
+                  "min": false,
+                  "rightSide": false,
+                  "show": false,
+                  "sideWidth": 200,
+                  "sort": "current",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 2,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 12,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum (rate (container_network_receive_bytes_total{kubernetes_io_hostname=~\"^$Node$\"}[1m]))",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "Received",
+                    "metric": "network",
+                    "refId": "A",
+                    "step": 10
+                  },
+                  {
+                    "expr": "- sum (rate (container_network_transmit_bytes_total{kubernetes_io_hostname=~\"^$Node$\"}[1m]))",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "Sent",
+                    "metric": "network",
+                    "refId": "B",
+                    "step": 10
+                  }
+                ],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Network I/O pressure",
+                "tooltip": {
+                  "msResolution": false,
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "cumulative"
+                },
+                "transparent": false,
+                "type": "graph",
+                "xaxis": {
+                  "show": true
+                },
+                "yaxes": [
+                  {
+                    "format": "Bps",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "Bps",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": false
+                  }
+                ]
+              }
+            ],
+            "title": "Network I/O pressure"
+          },
+          {
+            "collapse": false,
+            "editable": true,
+            "height": "250px",
+            "panels": [
+              {
+                "cacheTimeout": null,
+                "colorBackground": false,
+                "colorValue": true,
+                "colors": [
+                  "rgba(50, 172, 45, 0.97)",
+                  "rgba(237, 129, 40, 0.89)",
+                  "rgba(245, 54, 54, 0.9)"
+                ],
+                "datasource": "prometheus",
+                "editable": true,
+                "error": false,
+                "format": "percent",
+                "gauge": {
+                  "maxValue": 100,
+                  "minValue": 0,
+                  "show": true,
+                  "thresholdLabels": false,
+                  "thresholdMarkers": true
+                },
+                "height": "180px",
+                "id": 4,
+                "interval": null,
+                "isNew": true,
+                "links": [],
+                "mappingType": 1,
+                "mappingTypes": [
+                  {
+                    "name": "value to text",
+                    "value": 1
+                  },
+                  {
+                    "name": "range to text",
+                    "value": 2
+                  }
+                ],
+                "maxDataPoints": 100,
+                "nullPointMode": "connected",
+                "nullText": null,
+                "postfix": "",
+                "postfixFontSize": "50%",
+                "prefix": "",
+                "prefixFontSize": "50%",
+                "rangeMaps": [
+                  {
+                    "from": "null",
+                    "text": "N/A",
+                    "to": "null"
+                  }
+                ],
+                "span": 4,
+                "sparkline": {
+                  "fillColor": "rgba(31, 118, 189, 0.18)",
+                  "full": false,
+                  "lineColor": "rgb(31, 120, 193)",
+                  "show": false
+                },
+                "targets": [
+                  {
+                    "expr": "sum (container_memory_working_set_bytes{id=\"/\",kubernetes_io_hostname=~\"^$Node$\"}) / sum (machine_memory_bytes{kubernetes_io_hostname=~\"^$Node$\"}) * 100",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "refId": "A",
+                    "step": 10
+                  }
+                ],
+                "thresholds": "65, 90",
+                "title": "Cluster memory usage",
+                "transparent": false,
+                "type": "singlestat",
+                "valueFontSize": "80%",
+                "valueMaps": [
+                  {
+                    "op": "=",
+                    "text": "N/A",
+                    "value": "null"
+                  }
+                ],
+                "valueName": "current"
+              },
+              {
+                "cacheTimeout": null,
+                "colorBackground": false,
+                "colorValue": true,
+                "colors": [
+                  "rgba(50, 172, 45, 0.97)",
+                  "rgba(237, 129, 40, 0.89)",
+                  "rgba(245, 54, 54, 0.9)"
+                ],
+                "datasource": "prometheus",
+                "decimals": 2,
+                "editable": true,
+                "error": false,
+                "format": "percent",
+                "gauge": {
+                  "maxValue": 100,
+                  "minValue": 0,
+                  "show": true,
+                  "thresholdLabels": false,
+                  "thresholdMarkers": true
+                },
+                "height": "180px",
+                "id": 6,
+                "interval": null,
+                "isNew": true,
+                "links": [],
+                "mappingType": 1,
+                "mappingTypes": [
+                  {
+                    "name": "value to text",
+                    "value": 1
+                  },
+                  {
+                    "name": "range to text",
+                    "value": 2
+                  }
+                ],
+                "maxDataPoints": 100,
+                "nullPointMode": "connected",
+                "nullText": null,
+                "postfix": "",
+                "postfixFontSize": "50%",
+                "prefix": "",
+                "prefixFontSize": "50%",
+                "rangeMaps": [
+                  {
+                    "from": "null",
+                    "text": "N/A",
+                    "to": "null"
+                  }
+                ],
+                "span": 4,
+                "sparkline": {
+                  "fillColor": "rgba(31, 118, 189, 0.18)",
+                  "full": false,
+                  "lineColor": "rgb(31, 120, 193)",
+                  "show": false
+                },
+                "targets": [
+                  {
+                    "expr": "sum (rate (container_cpu_usage_seconds_total{id=\"/\",kubernetes_io_hostname=~\"^$Node$\"}[1m])) / sum (machine_cpu_cores{kubernetes_io_hostname=~\"^$Node$\"}) * 100",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "refId": "A",
+                    "step": 10
+                  }
+                ],
+                "thresholds": "65, 90",
+                "title": "Cluster CPU usage (1m avg)",
+                "type": "singlestat",
+                "valueFontSize": "80%",
+                "valueMaps": [
+                  {
+                    "op": "=",
+                    "text": "N/A",
+                    "value": "null"
+                  }
+                ],
+                "valueName": "current"
+              },
+              {
+                "cacheTimeout": null,
+                "colorBackground": false,
+                "colorValue": true,
+                "colors": [
+                  "rgba(50, 172, 45, 0.97)",
+                  "rgba(237, 129, 40, 0.89)",
+                  "rgba(245, 54, 54, 0.9)"
+                ],
+                "datasource": "prometheus",
+                "decimals": 2,
+                "editable": true,
+                "error": false,
+                "format": "percent",
+                "gauge": {
+                  "maxValue": 100,
+                  "minValue": 0,
+                  "show": true,
+                  "thresholdLabels": false,
+                  "thresholdMarkers": true
+                },
+                "height": "180px",
+                "id": 7,
+                "interval": null,
+                "isNew": true,
+                "links": [],
+                "mappingType": 1,
+                "mappingTypes": [
+                  {
+                    "name": "value to text",
+                    "value": 1
+                  },
+                  {
+                    "name": "range to text",
+                    "value": 2
+                  }
+                ],
+                "maxDataPoints": 100,
+                "nullPointMode": "connected",
+                "nullText": null,
+                "postfix": "",
+                "postfixFontSize": "50%",
+                "prefix": "",
+                "prefixFontSize": "50%",
+                "rangeMaps": [
+                  {
+                    "from": "null",
+                    "text": "N/A",
+                    "to": "null"
+                  }
+                ],
+                "span": 4,
+                "sparkline": {
+                  "fillColor": "rgba(31, 118, 189, 0.18)",
+                  "full": false,
+                  "lineColor": "rgb(31, 120, 193)",
+                  "show": false
+                },
+                "targets": [
+                  {
+                    "expr": "sum (container_fs_usage_bytes{device=~\"^/dev/.*$\",id=\"/\",kubernetes_io_hostname=~\"^$Node$\"}) / sum (container_fs_limit_bytes{device=~\"^/dev/.*$\",id=\"/\",kubernetes_io_hostname=~\"^$Node$\"}) * 100",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "",
+                    "metric": "",
+                    "refId": "A",
+                    "step": 10
+                  }
+                ],
+                "thresholds": "65, 90",
+                "title": "Cluster filesystem usage",
+                "type": "singlestat",
+                "valueFontSize": "80%",
+                "valueMaps": [
+                  {
+                    "op": "=",
+                    "text": "N/A",
+                    "value": "null"
+                  }
+                ],
+                "valueName": "current"
+              },
+              {
+                "cacheTimeout": null,
+                "colorBackground": false,
+                "colorValue": false,
+                "colors": [
+                  "rgba(50, 172, 45, 0.97)",
+                  "rgba(237, 129, 40, 0.89)",
+                  "rgba(245, 54, 54, 0.9)"
+                ],
+                "datasource": "prometheus",
+                "decimals": 2,
+                "editable": true,
+                "error": false,
+                "format": "bytes",
+                "gauge": {
+                  "maxValue": 100,
+                  "minValue": 0,
+                  "show": false,
+                  "thresholdLabels": false,
+                  "thresholdMarkers": true
+                },
+                "height": "1px",
+                "id": 9,
+                "interval": null,
+                "isNew": true,
+                "links": [],
+                "mappingType": 1,
+                "mappingTypes": [
+                  {
+                    "name": "value to text",
+                    "value": 1
+                  },
+                  {
+                    "name": "range to text",
+                    "value": 2
+                  }
+                ],
+                "maxDataPoints": 100,
+                "nullPointMode": "connected",
+                "nullText": null,
+                "postfix": "",
+                "postfixFontSize": "20%",
+                "prefix": "",
+                "prefixFontSize": "20%",
+                "rangeMaps": [
+                  {
+                    "from": "null",
+                    "text": "N/A",
+                    "to": "null"
+                  }
+                ],
+                "span": 2,
+                "sparkline": {
+                  "fillColor": "rgba(31, 118, 189, 0.18)",
+                  "full": false,
+                  "lineColor": "rgb(31, 120, 193)",
+                  "show": false
+                },
+                "targets": [
+                  {
+                    "expr": "sum (container_memory_working_set_bytes{id=\"/\",kubernetes_io_hostname=~\"^$Node$\"})",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "refId": "A",
+                    "step": 10
+                  }
+                ],
+                "thresholds": "",
+                "title": "Used",
+                "type": "singlestat",
+                "valueFontSize": "50%",
+                "valueMaps": [
+                  {
+                    "op": "=",
+                    "text": "N/A",
+                    "value": "null"
+                  }
+                ],
+                "valueName": "current"
+              },
+              {
+                "cacheTimeout": null,
+                "colorBackground": false,
+                "colorValue": false,
+                "colors": [
+                  "rgba(50, 172, 45, 0.97)",
+                  "rgba(237, 129, 40, 0.89)",
+                  "rgba(245, 54, 54, 0.9)"
+                ],
+                "datasource": "prometheus",
+                "decimals": 2,
+                "editable": true,
+                "error": false,
+                "format": "bytes",
+                "gauge": {
+                  "maxValue": 100,
+                  "minValue": 0,
+                  "show": false,
+                  "thresholdLabels": false,
+                  "thresholdMarkers": true
+                },
+                "height": "1px",
+                "id": 10,
+                "interval": null,
+                "isNew": true,
+                "links": [],
+                "mappingType": 1,
+                "mappingTypes": [
+                  {
+                    "name": "value to text",
+                    "value": 1
+                  },
+                  {
+                    "name": "range to text",
+                    "value": 2
+                  }
+                ],
+                "maxDataPoints": 100,
+                "nullPointMode": "connected",
+                "nullText": null,
+                "postfix": "",
+                "postfixFontSize": "50%",
+                "prefix": "",
+                "prefixFontSize": "50%",
+                "rangeMaps": [
+                  {
+                    "from": "null",
+                    "text": "N/A",
+                    "to": "null"
+                  }
+                ],
+                "span": 2,
+                "sparkline": {
+                  "fillColor": "rgba(31, 118, 189, 0.18)",
+                  "full": false,
+                  "lineColor": "rgb(31, 120, 193)",
+                  "show": false
+                },
+                "targets": [
+                  {
+                    "expr": "sum (machine_memory_bytes{kubernetes_io_hostname=~\"^$Node$\"})",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "refId": "A",
+                    "step": 10
+                  }
+                ],
+                "thresholds": "",
+                "title": "Total",
+                "type": "singlestat",
+                "valueFontSize": "50%",
+                "valueMaps": [
+                  {
+                    "op": "=",
+                    "text": "N/A",
+                    "value": "null"
+                  }
+                ],
+                "valueName": "current"
+              },
+              {
+                "cacheTimeout": null,
+                "colorBackground": false,
+                "colorValue": false,
+                "colors": [
+                  "rgba(50, 172, 45, 0.97)",
+                  "rgba(237, 129, 40, 0.89)",
+                  "rgba(245, 54, 54, 0.9)"
+                ],
+                "datasource": "prometheus",
+                "decimals": 2,
+                "editable": true,
+                "error": false,
+                "format": "none",
+                "gauge": {
+                  "maxValue": 100,
+                  "minValue": 0,
+                  "show": false,
+                  "thresholdLabels": false,
+                  "thresholdMarkers": true
+                },
+                "height": "1px",
+                "id": 11,
+                "interval": null,
+                "isNew": true,
+                "links": [],
+                "mappingType": 1,
+                "mappingTypes": [
+                  {
+                    "name": "value to text",
+                    "value": 1
+                  },
+                  {
+                    "name": "range to text",
+                    "value": 2
+                  }
+                ],
+                "maxDataPoints": 100,
+                "nullPointMode": "connected",
+                "nullText": null,
+                "postfix": " cores",
+                "postfixFontSize": "30%",
+                "prefix": "",
+                "prefixFontSize": "50%",
+                "rangeMaps": [
+                  {
+                    "from": "null",
+                    "text": "N/A",
+                    "to": "null"
+                  }
+                ],
+                "span": 2,
+                "sparkline": {
+                  "fillColor": "rgba(31, 118, 189, 0.18)",
+                  "full": false,
+                  "lineColor": "rgb(31, 120, 193)",
+                  "show": false
+                },
+                "targets": [
+                  {
+                    "expr": "sum (rate (container_cpu_usage_seconds_total{id=\"/\",kubernetes_io_hostname=~\"^$Node$\"}[1m]))",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "refId": "A",
+                    "step": 10
+                  }
+                ],
+                "thresholds": "",
+                "title": "Used",
+                "type": "singlestat",
+                "valueFontSize": "50%",
+                "valueMaps": [
+                  {
+                    "op": "=",
+                    "text": "N/A",
+                    "value": "null"
+                  }
+                ],
+                "valueName": "current"
+              },
+              {
+                "cacheTimeout": null,
+                "colorBackground": false,
+                "colorValue": false,
+                "colors": [
+                  "rgba(50, 172, 45, 0.97)",
+                  "rgba(237, 129, 40, 0.89)",
+                  "rgba(245, 54, 54, 0.9)"
+                ],
+                "datasource": "prometheus",
+                "decimals": 2,
+                "editable": true,
+                "error": false,
+                "format": "none",
+                "gauge": {
+                  "maxValue": 100,
+                  "minValue": 0,
+                  "show": false,
+                  "thresholdLabels": false,
+                  "thresholdMarkers": true
+                },
+                "height": "1px",
+                "id": 12,
+                "interval": null,
+                "isNew": true,
+                "links": [],
+                "mappingType": 1,
+                "mappingTypes": [
+                  {
+                    "name": "value to text",
+                    "value": 1
+                  },
+                  {
+                    "name": "range to text",
+                    "value": 2
+                  }
+                ],
+                "maxDataPoints": 100,
+                "nullPointMode": "connected",
+                "nullText": null,
+                "postfix": " cores",
+                "postfixFontSize": "30%",
+                "prefix": "",
+                "prefixFontSize": "50%",
+                "rangeMaps": [
+                  {
+                    "from": "null",
+                    "text": "N/A",
+                    "to": "null"
+                  }
+                ],
+                "span": 2,
+                "sparkline": {
+                  "fillColor": "rgba(31, 118, 189, 0.18)",
+                  "full": false,
+                  "lineColor": "rgb(31, 120, 193)",
+                  "show": false
+                },
+                "targets": [
+                  {
+                    "expr": "sum (machine_cpu_cores{kubernetes_io_hostname=~\"^$Node$\"})",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "refId": "A",
+                    "step": 10
+                  }
+                ],
+                "thresholds": "",
+                "title": "Total",
+                "type": "singlestat",
+                "valueFontSize": "50%",
+                "valueMaps": [
+                  {
+                    "op": "=",
+                    "text": "N/A",
+                    "value": "null"
+                  }
+                ],
+                "valueName": "current"
+              },
+              {
+                "cacheTimeout": null,
+                "colorBackground": false,
+                "colorValue": false,
+                "colors": [
+                  "rgba(50, 172, 45, 0.97)",
+                  "rgba(237, 129, 40, 0.89)",
+                  "rgba(245, 54, 54, 0.9)"
+                ],
+                "datasource": "prometheus",
+                "decimals": 2,
+                "editable": true,
+                "error": false,
+                "format": "bytes",
+                "gauge": {
+                  "maxValue": 100,
+                  "minValue": 0,
+                  "show": false,
+                  "thresholdLabels": false,
+                  "thresholdMarkers": true
+                },
+                "height": "1px",
+                "id": 13,
+                "interval": null,
+                "isNew": true,
+                "links": [],
+                "mappingType": 1,
+                "mappingTypes": [
+                  {
+                    "name": "value to text",
+                    "value": 1
+                  },
+                  {
+                    "name": "range to text",
+                    "value": 2
+                  }
+                ],
+                "maxDataPoints": 100,
+                "nullPointMode": "connected",
+                "nullText": null,
+                "postfix": "",
+                "postfixFontSize": "50%",
+                "prefix": "",
+                "prefixFontSize": "50%",
+                "rangeMaps": [
+                  {
+                    "from": "null",
+                    "text": "N/A",
+                    "to": "null"
+                  }
+                ],
+                "span": 2,
+                "sparkline": {
+                  "fillColor": "rgba(31, 118, 189, 0.18)",
+                  "full": false,
+                  "lineColor": "rgb(31, 120, 193)",
+                  "show": false
+                },
+                "targets": [
+                  {
+                    "expr": "sum (container_fs_usage_bytes{device=~\"^/dev/.*$\",id=\"/\",kubernetes_io_hostname=~\"^$Node$\"})",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "refId": "A",
+                    "step": 10
+                  }
+                ],
+                "thresholds": "",
+                "title": "Used",
+                "type": "singlestat",
+                "valueFontSize": "50%",
+                "valueMaps": [
+                  {
+                    "op": "=",
+                    "text": "N/A",
+                    "value": "null"
+                  }
+                ],
+                "valueName": "current"
+              },
+              {
+                "cacheTimeout": null,
+                "colorBackground": false,
+                "colorValue": false,
+                "colors": [
+                  "rgba(50, 172, 45, 0.97)",
+                  "rgba(237, 129, 40, 0.89)",
+                  "rgba(245, 54, 54, 0.9)"
+                ],
+                "datasource": "prometheus",
+                "decimals": 2,
+                "editable": true,
+                "error": false,
+                "format": "bytes",
+                "gauge": {
+                  "maxValue": 100,
+                  "minValue": 0,
+                  "show": false,
+                  "thresholdLabels": false,
+                  "thresholdMarkers": true
+                },
+                "height": "1px",
+                "id": 14,
+                "interval": null,
+                "isNew": true,
+                "links": [],
+                "mappingType": 1,
+                "mappingTypes": [
+                  {
+                    "name": "value to text",
+                    "value": 1
+                  },
+                  {
+                    "name": "range to text",
+                    "value": 2
+                  }
+                ],
+                "maxDataPoints": 100,
+                "nullPointMode": "connected",
+                "nullText": null,
+                "postfix": "",
+                "postfixFontSize": "50%",
+                "prefix": "",
+                "prefixFontSize": "50%",
+                "rangeMaps": [
+                  {
+                    "from": "null",
+                    "text": "N/A",
+                    "to": "null"
+                  }
+                ],
+                "span": 2,
+                "sparkline": {
+                  "fillColor": "rgba(31, 118, 189, 0.18)",
+                  "full": false,
+                  "lineColor": "rgb(31, 120, 193)",
+                  "show": false
+                },
+                "targets": [
+                  {
+                    "expr": "sum (container_fs_limit_bytes{device=~\"^/dev/.*$\",id=\"/\",kubernetes_io_hostname=~\"^$Node$\"})",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "refId": "A",
+                    "step": 10
+                  }
+                ],
+                "thresholds": "",
+                "title": "Total",
+                "type": "singlestat",
+                "valueFontSize": "50%",
+                "valueMaps": [
+                  {
+                    "op": "=",
+                    "text": "N/A",
+                    "value": "null"
+                  }
+                ],
+                "valueName": "current"
+              }
+            ],
+            "showTitle": false,
+            "title": "Total usage"
+          },
+          {
+            "collapse": false,
+            "editable": true,
+            "height": "250px",
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "decimals": 3,
+                "editable": true,
+                "error": false,
+                "fill": 0,
+                "grid": {
+                  "threshold1": null,
+                  "threshold1Color": "rgba(216, 200, 27, 0.27)",
+                  "threshold2": null,
+                  "threshold2Color": "rgba(234, 112, 112, 0.22)"
+                },
+                "height": "",
+                "id": 17,
+                "isNew": true,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": true,
+                  "max": false,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sort": "current",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 2,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 12,
+                "stack": false,
+                "steppedLine": true,
+                "targets": [
+                  {
+                    "expr": "sum (rate (container_cpu_usage_seconds_total{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^$Node$\"}[1m])) by (pod_name)",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "{{ pod_name }}",
+                    "metric": "container_cpu",
+                    "refId": "A",
+                    "step": 10
+                  }
+                ],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Pods CPU usage (1m avg)",
+                "tooltip": {
+                  "msResolution": true,
+                  "shared": true,
+                  "sort": 2,
+                  "value_type": "cumulative"
+                },
+                "transparent": false,
+                "type": "graph",
+                "xaxis": {
+                  "show": true
+                },
+                "yaxes": [
+                  {
+                    "format": "none",
+                    "label": "cores",
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": false
+                  }
+                ]
+              }
+            ],
+            "showTitle": false,
+            "title": "Pods CPU usage"
+          },
+          {
+            "collapse": true,
+            "editable": true,
+            "height": "250px",
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "decimals": 3,
+                "editable": true,
+                "error": false,
+                "fill": 0,
+                "grid": {
+                  "threshold1": null,
+                  "threshold1Color": "rgba(216, 200, 27, 0.27)",
+                  "threshold2": null,
+                  "threshold2Color": "rgba(234, 112, 112, 0.22)"
+                },
+                "height": "",
+                "id": 23,
+                "isNew": true,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": true,
+                  "max": false,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sort": "current",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 2,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 12,
+                "stack": false,
+                "steppedLine": true,
+                "targets": [
+                  {
+                    "expr": "sum (rate (container_cpu_usage_seconds_total{systemd_service_name!=\"\",kubernetes_io_hostname=~\"^$Node$\"}[1m])) by (systemd_service_name)",
+                    "hide": false,
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "{{ systemd_service_name }}",
+                    "metric": "container_cpu",
+                    "refId": "A",
+                    "step": 10
+                  }
+                ],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "System services CPU usage (1m avg)",
+                "tooltip": {
+                  "msResolution": true,
+                  "shared": true,
+                  "sort": 2,
+                  "value_type": "cumulative"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "show": true
+                },
+                "yaxes": [
+                  {
+                    "format": "none",
+                    "label": "cores",
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": false
+                  }
+                ]
+              }
+            ],
+            "title": "System services CPU usage"
+          },
+          {
+            "collapse": true,
+            "editable": true,
+            "height": "250px",
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "decimals": 3,
+                "editable": true,
+                "error": false,
+                "fill": 0,
+                "grid": {
+                  "threshold1": null,
+                  "threshold1Color": "rgba(216, 200, 27, 0.27)",
+                  "threshold2": null,
+                  "threshold2Color": "rgba(234, 112, 112, 0.22)"
+                },
+                "height": "",
+                "id": 24,
+                "isNew": true,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": true,
+                  "hideEmpty": false,
+                  "hideZero": false,
+                  "max": false,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sideWidth": null,
+                  "sort": "current",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 2,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 12,
+                "stack": false,
+                "steppedLine": true,
+                "targets": [
+                  {
+                    "expr": "sum (rate (container_cpu_usage_seconds_total{image!=\"\",name=~\"^k8s_.*\",container_name!=\"POD\",kubernetes_io_hostname=~\"^$Node$\"}[1m])) by (container_name, pod_name)",
+                    "hide": false,
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "pod: {{ pod_name }} | {{ container_name }}",
+                    "metric": "container_cpu",
+                    "refId": "A",
+                    "step": 10
+                  },
+                  {
+                    "expr": "sum (rate (container_cpu_usage_seconds_total{image!=\"\",name!~\"^k8s_.*\",kubernetes_io_hostname=~\"^$Node$\"}[1m])) by (kubernetes_io_hostname, name, image)",
+                    "hide": false,
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "docker: {{ kubernetes_io_hostname }} | {{ image }} ({{ name }})",
+                    "metric": "container_cpu",
+                    "refId": "B",
+                    "step": 10
+                  },
+                  {
+                    "expr": "sum (rate (container_cpu_usage_seconds_total{rkt_container_name!=\"\",kubernetes_io_hostname=~\"^$Node$\"}[1m])) by (kubernetes_io_hostname, rkt_container_name)",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "rkt: {{ kubernetes_io_hostname }} | {{ rkt_container_name }}",
+                    "metric": "container_cpu",
+                    "refId": "C",
+                    "step": 10
+                  }
+                ],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Containers CPU usage (1m avg)",
+                "tooltip": {
+                  "msResolution": true,
+                  "shared": true,
+                  "sort": 2,
+                  "value_type": "cumulative"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "show": true
+                },
+                "yaxes": [
+                  {
+                    "format": "none",
+                    "label": "cores",
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": false
+                  }
+                ]
+              }
+            ],
+            "title": "Containers CPU usage"
+          },
+          {
+            "collapse": true,
+            "editable": true,
+            "height": "500px",
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "decimals": 3,
+                "editable": true,
+                "error": false,
+                "fill": 0,
+                "grid": {
+                  "threshold1": null,
+                  "threshold1Color": "rgba(216, 200, 27, 0.27)",
+                  "threshold2": null,
+                  "threshold2Color": "rgba(234, 112, 112, 0.22)"
+                },
+                "id": 20,
+                "isNew": true,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": true,
+                  "max": false,
+                  "min": false,
+                  "rightSide": false,
+                  "show": true,
+                  "sort": "current",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 2,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 12,
+                "stack": false,
+                "steppedLine": true,
+                "targets": [
+                  {
+                    "expr": "sum (rate (container_cpu_usage_seconds_total{id!=\"/\",kubernetes_io_hostname=~\"^$Node$\"}[1m])) by (id)",
+                    "hide": false,
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "{{ id }}",
+                    "metric": "container_cpu",
+                    "refId": "A",
+                    "step": 10
+                  }
+                ],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "All processes CPU usage (1m avg)",
+                "tooltip": {
+                  "msResolution": true,
+                  "shared": true,
+                  "sort": 2,
+                  "value_type": "cumulative"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "show": true
+                },
+                "yaxes": [
+                  {
+                    "format": "none",
+                    "label": "cores",
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": false
+                  }
+                ]
+              }
+            ],
+            "repeat": null,
+            "showTitle": false,
+            "title": "All processes CPU usage"
+          },
+          {
+            "collapse": false,
+            "editable": true,
+            "height": "250px",
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "decimals": 2,
+                "editable": true,
+                "error": false,
+                "fill": 0,
+                "grid": {
+                  "threshold1": null,
+                  "threshold1Color": "rgba(216, 200, 27, 0.27)",
+                  "threshold2": null,
+                  "threshold2Color": "rgba(234, 112, 112, 0.22)"
+                },
+                "id": 25,
+                "isNew": true,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": true,
+                  "max": false,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sideWidth": 200,
+                  "sort": "current",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 2,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 12,
+                "stack": false,
+                "steppedLine": true,
+                "targets": [
+                  {
+                    "expr": "sum (container_memory_working_set_bytes{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^$Node$\"}) by (pod_name)",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "{{ pod_name }}",
+                    "metric": "container_memory_usage:sort_desc",
+                    "refId": "A",
+                    "step": 10
+                  }
+                ],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Pods memory usage",
+                "tooltip": {
+                  "msResolution": false,
+                  "shared": true,
+                  "sort": 2,
+                  "value_type": "cumulative"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "show": true
+                },
+                "yaxes": [
+                  {
+                    "format": "bytes",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": false
+                  }
+                ]
+              }
+            ],
+            "title": "Pods memory usage"
+          },
+          {
+            "collapse": true,
+            "editable": true,
+            "height": "250px",
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "decimals": 2,
+                "editable": true,
+                "error": false,
+                "fill": 0,
+                "grid": {
+                  "threshold1": null,
+                  "threshold1Color": "rgba(216, 200, 27, 0.27)",
+                  "threshold2": null,
+                  "threshold2Color": "rgba(234, 112, 112, 0.22)"
+                },
+                "id": 26,
+                "isNew": true,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": true,
+                  "max": false,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sideWidth": 200,
+                  "sort": "current",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 2,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 12,
+                "stack": false,
+                "steppedLine": true,
+                "targets": [
+                  {
+                    "expr": "sum (container_memory_working_set_bytes{systemd_service_name!=\"\",kubernetes_io_hostname=~\"^$Node$\"}) by (systemd_service_name)",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "{{ systemd_service_name }}",
+                    "metric": "container_memory_usage:sort_desc",
+                    "refId": "A",
+                    "step": 10
+                  }
+                ],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "System services memory usage",
+                "tooltip": {
+                  "msResolution": false,
+                  "shared": true,
+                  "sort": 2,
+                  "value_type": "cumulative"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "show": true
+                },
+                "yaxes": [
+                  {
+                    "format": "bytes",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": false
+                  }
+                ]
+              }
+            ],
+            "title": "System services memory usage"
+          },
+          {
+            "collapse": true,
+            "editable": true,
+            "height": "250px",
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "decimals": 2,
+                "editable": true,
+                "error": false,
+                "fill": 0,
+                "grid": {
+                  "threshold1": null,
+                  "threshold1Color": "rgba(216, 200, 27, 0.27)",
+                  "threshold2": null,
+                  "threshold2Color": "rgba(234, 112, 112, 0.22)"
+                },
+                "id": 27,
+                "isNew": true,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": true,
+                  "max": false,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sideWidth": 200,
+                  "sort": "current",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 2,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 12,
+                "stack": false,
+                "steppedLine": true,
+                "targets": [
+                  {
+                    "expr": "sum (container_memory_working_set_bytes{image!=\"\",name=~\"^k8s_.*\",container_name!=\"POD\",kubernetes_io_hostname=~\"^$Node$\"}) by (container_name, pod_name)",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "pod: {{ pod_name }} | {{ container_name }}",
+                    "metric": "container_memory_usage:sort_desc",
+                    "refId": "A",
+                    "step": 10
+                  },
+                  {
+                    "expr": "sum (container_memory_working_set_bytes{image!=\"\",name!~\"^k8s_.*\",kubernetes_io_hostname=~\"^$Node$\"}) by (kubernetes_io_hostname, name, image)",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "docker: {{ kubernetes_io_hostname }} | {{ image }} ({{ name }})",
+                    "metric": "container_memory_usage:sort_desc",
+                    "refId": "B",
+                    "step": 10
+                  },
+                  {
+                    "expr": "sum (container_memory_working_set_bytes{rkt_container_name!=\"\",kubernetes_io_hostname=~\"^$Node$\"}) by (kubernetes_io_hostname, rkt_container_name)",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "rkt: {{ kubernetes_io_hostname }} | {{ rkt_container_name }}",
+                    "metric": "container_memory_usage:sort_desc",
+                    "refId": "C",
+                    "step": 10
+                  }
+                ],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Containers memory usage",
+                "tooltip": {
+                  "msResolution": false,
+                  "shared": true,
+                  "sort": 2,
+                  "value_type": "cumulative"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "show": true
+                },
+                "yaxes": [
+                  {
+                    "format": "bytes",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": false
+                  }
+                ]
+              }
+            ],
+            "title": "Containers memory usage"
+          },
+          {
+            "collapse": true,
+            "editable": true,
+            "height": "500px",
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "decimals": 2,
+                "editable": true,
+                "error": false,
+                "fill": 0,
+                "grid": {
+                  "threshold1": null,
+                  "threshold1Color": "rgba(216, 200, 27, 0.27)",
+                  "threshold2": null,
+                  "threshold2Color": "rgba(234, 112, 112, 0.22)"
+                },
+                "id": 28,
+                "isNew": true,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": true,
+                  "max": false,
+                  "min": false,
+                  "rightSide": false,
+                  "show": true,
+                  "sideWidth": 200,
+                  "sort": "current",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 2,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 12,
+                "stack": false,
+                "steppedLine": true,
+                "targets": [
+                  {
+                    "expr": "sum (container_memory_working_set_bytes{id!=\"/\",kubernetes_io_hostname=~\"^$Node$\"}) by (id)",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "{{ id }}",
+                    "metric": "container_memory_usage:sort_desc",
+                    "refId": "A",
+                    "step": 10
+                  }
+                ],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "All processes memory usage",
+                "tooltip": {
+                  "msResolution": false,
+                  "shared": true,
+                  "sort": 2,
+                  "value_type": "cumulative"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "show": true
+                },
+                "yaxes": [
+                  {
+                    "format": "bytes",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": false
+                  }
+                ]
+              }
+            ],
+            "title": "All processes memory usage"
+          },
+          {
+            "collapse": false,
+            "editable": true,
+            "height": "250px",
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "decimals": 2,
+                "editable": true,
+                "error": false,
+                "fill": 1,
+                "grid": {
+                  "threshold1": null,
+                  "threshold1Color": "rgba(216, 200, 27, 0.27)",
+                  "threshold2": null,
+                  "threshold2Color": "rgba(234, 112, 112, 0.22)"
+                },
+                "id": 16,
+                "isNew": true,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": true,
+                  "max": false,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sideWidth": 200,
+                  "sort": "current",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 2,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 12,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum (rate (container_network_receive_bytes_total{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^$Node$\"}[1m])) by (pod_name)",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "-> {{ pod_name }}",
+                    "metric": "network",
+                    "refId": "A",
+                    "step": 10
+                  },
+                  {
+                    "expr": "- sum (rate (container_network_transmit_bytes_total{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^$Node$\"}[1m])) by (pod_name)",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "<- {{ pod_name }}",
+                    "metric": "network",
+                    "refId": "B",
+                    "step": 10
+                  }
+                ],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Pods network I/O (1m avg)",
+                "tooltip": {
+                  "msResolution": false,
+                  "shared": true,
+                  "sort": 2,
+                  "value_type": "cumulative"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "show": true
+                },
+                "yaxes": [
+                  {
+                    "format": "Bps",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": false
+                  }
+                ]
+              }
+            ],
+            "title": "Pods network I/O"
+          },
+          {
+            "collapse": true,
+            "editable": true,
+            "height": "250px",
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "decimals": 2,
+                "editable": true,
+                "error": false,
+                "fill": 1,
+                "grid": {
+                  "threshold1": null,
+                  "threshold1Color": "rgba(216, 200, 27, 0.27)",
+                  "threshold2": null,
+                  "threshold2Color": "rgba(234, 112, 112, 0.22)"
+                },
+                "id": 30,
+                "isNew": true,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": true,
+                  "max": false,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sideWidth": 200,
+                  "sort": "current",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 2,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 12,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum (rate (container_network_receive_bytes_total{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^$Node$\"}[1m])) by (container_name, pod_name)",
+                    "hide": false,
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "-> pod: {{ pod_name }} | {{ container_name }}",
+                    "metric": "network",
+                    "refId": "B",
+                    "step": 10
+                  },
+                  {
+                    "expr": "- sum (rate (container_network_transmit_bytes_total{image!=\"\",name=~\"^k8s_.*\",kubernetes_io_hostname=~\"^$Node$\"}[1m])) by (container_name, pod_name)",
+                    "hide": false,
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "<- pod: {{ pod_name }} | {{ container_name }}",
+                    "metric": "network",
+                    "refId": "D",
+                    "step": 10
+                  },
+                  {
+                    "expr": "sum (rate (container_network_receive_bytes_total{image!=\"\",name!~\"^k8s_.*\",kubernetes_io_hostname=~\"^$Node$\"}[1m])) by (kubernetes_io_hostname, name, image)",
+                    "hide": false,
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "-> docker: {{ kubernetes_io_hostname }} | {{ image }} ({{ name }})",
+                    "metric": "network",
+                    "refId": "A",
+                    "step": 10
+                  },
+                  {
+                    "expr": "- sum (rate (container_network_transmit_bytes_total{image!=\"\",name!~\"^k8s_.*\",kubernetes_io_hostname=~\"^$Node$\"}[1m])) by (kubernetes_io_hostname, name, image)",
+                    "hide": false,
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "<- docker: {{ kubernetes_io_hostname }} | {{ image }} ({{ name }})",
+                    "metric": "network",
+                    "refId": "C",
+                    "step": 10
+                  },
+                  {
+                    "expr": "sum (rate (container_network_transmit_bytes_total{rkt_container_name!=\"\",kubernetes_io_hostname=~\"^$Node$\"}[1m])) by (kubernetes_io_hostname, rkt_container_name)",
+                    "hide": false,
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "-> rkt: {{ kubernetes_io_hostname }} | {{ rkt_container_name }}",
+                    "metric": "network",
+                    "refId": "E",
+                    "step": 10
+                  },
+                  {
+                    "expr": "- sum (rate (container_network_transmit_bytes_total{rkt_container_name!=\"\",kubernetes_io_hostname=~\"^$Node$\"}[1m])) by (kubernetes_io_hostname, rkt_container_name)",
+                    "hide": false,
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "<- rkt: {{ kubernetes_io_hostname }} | {{ rkt_container_name }}",
+                    "metric": "network",
+                    "refId": "F",
+                    "step": 10
+                  }
+                ],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Containers network I/O (1m avg)",
+                "tooltip": {
+                  "msResolution": false,
+                  "shared": true,
+                  "sort": 2,
+                  "value_type": "cumulative"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "show": true
+                },
+                "yaxes": [
+                  {
+                    "format": "Bps",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": false
+                  }
+                ]
+              }
+            ],
+            "title": "Containers network I/O"
+          },
+          {
+            "collapse": true,
+            "editable": true,
+            "height": "500px",
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "decimals": 2,
+                "editable": true,
+                "error": false,
+                "fill": 1,
+                "grid": {
+                  "threshold1": null,
+                  "threshold1Color": "rgba(216, 200, 27, 0.27)",
+                  "threshold2": null,
+                  "threshold2Color": "rgba(234, 112, 112, 0.22)"
+                },
+                "id": 29,
+                "isNew": true,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": true,
+                  "max": false,
+                  "min": false,
+                  "rightSide": false,
+                  "show": true,
+                  "sideWidth": 200,
+                  "sort": "current",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 2,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 12,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum (rate (container_network_receive_bytes_total{id!=\"/\",kubernetes_io_hostname=~\"^$Node$\"}[1m])) by (id)",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "-> {{ id }}",
+                    "metric": "network",
+                    "refId": "A",
+                    "step": 10
+                  },
+                  {
+                    "expr": "- sum (rate (container_network_transmit_bytes_total{id!=\"/\",kubernetes_io_hostname=~\"^$Node$\"}[1m])) by (id)",
+                    "interval": "10s",
+                    "intervalFactor": 1,
+                    "legendFormat": "<- {{ id }}",
+                    "metric": "network",
+                    "refId": "B",
+                    "step": 10
+                  }
+                ],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "All processes network I/O (1m avg)",
+                "tooltip": {
+                  "msResolution": false,
+                  "shared": true,
+                  "sort": 2,
+                  "value_type": "cumulative"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "show": true
+                },
+                "yaxes": [
+                  {
+                    "format": "Bps",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": false
+                  }
+                ]
+              }
+            ],
+            "title": "All processes network I/O"
+          }
+        ],
+        "time": {
+          "from": "now-5m",
+          "to": "now"
+        },
+        "timepicker": {
+          "refresh_intervals": [
+            "5s",
+            "10s",
+            "30s",
+            "1m",
+            "5m",
+            "15m",
+            "30m",
+            "1h",
+            "2h",
+            "1d"
+          ],
+          "time_options": [
+            "5m",
+            "15m",
+            "1h",
+            "6h",
+            "12h",
+            "24h",
+            "2d",
+            "7d",
+            "30d"
+          ]
+        },
+        "templating": {
+          "list": [
+            {
+              "allValue": ".*",
+              "current": {},
+              "datasource": "prometheus",
+              "hide": 0,
+              "includeAll": true,
+              "multi": false,
+              "name": "Node",
+              "options": [],
+              "query": "label_values(kubernetes_io_hostname)",
+              "refresh": 1,
+              "type": "query"
+            }
+          ]
+        },
+        "annotations": {
+          "list": []
+        },
+        "refresh": "10s",
+        "schemaVersion": 12,
+        "version": 13,
+        "links": [],
+        "gnetId": 1621
+      }
+    all-nodes-dashboard.json: |+
+      {
+        "__inputs": [
+          {
+            "name": "prometheus",
+            "label": "prometheus",
+            "description": "",
+            "type": "datasource",
+            "pluginId": "prometheus",
+            "pluginName": "Prometheus"
+          }
+        ],
+        "__requires": [
+          {
+            "type": "grafana",
+            "id": "grafana",
+            "name": "Grafana",
+            "version": "4.1.1"
+          },
+          {
+            "type": "panel",
+            "id": "graph",
+            "name": "Graph",
+            "version": ""
+          },
+          {
+            "type": "datasource",
+            "id": "prometheus",
+            "name": "Prometheus",
+            "version": "1.0.0"
+          }
+        ],
+        "annotations": {
+          "list": []
+        },
+        "editable": true,
+        "gnetId": 1471,
+        "graphTooltip": 1,
+        "hideControls": false,
+        "id": null,
+        "links": [],
+        "refresh": "30s",
+        "rows": [
+          {
+            "collapse": false,
+            "height": "250px",
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "editable": true,
+                "error": false,
+                "fill": 1,
+                "grid": {},
+                "id": 3,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": false,
+                  "max": true,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sort": "avg",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 2,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 6,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum(irate(http_requests_total{app=\"$container\", handler!=\"prometheus\", kubernetes_namespace=\"$namespace\"}[30s])) by (kubernetes_namespace,app,code)",
+                    "interval": "",
+                    "intervalFactor": 1,
+                    "legendFormat": "native | {{code}}",
+                    "refId": "A",
+                    "step": 10
+                  },
+                  {
+                    "expr": "sum(irate(nginx_http_requests_total{app=\"$container\", kubernetes_namespace=\"$namespace\"}[30s])) by (kubernetes_namespace,app,status)",
+                    "interval": "",
+                    "intervalFactor": 1,
+                    "legendFormat": "nginx | {{status}}",
+                    "refId": "B",
+                    "step": 10
+                  },
+                  {
+                    "expr": "sum(irate(haproxy_backend_http_responses_total{app=\"$container\", kubernetes_namespace=\"$namespace\"}[30s])) by (app,kubernetes_namespace,code)",
+                    "interval": "",
+                    "intervalFactor": 1,
+                    "legendFormat": "haproxy | {{code}}",
+                    "refId": "C",
+                    "step": 10
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Request rate",
+                "tooltip": {
+                  "msResolution": true,
+                  "shared": false,
+                  "sort": 0,
+                  "value_type": "cumulative"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "ops",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ]
+              },
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "fill": 1,
+                "id": 15,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": false,
+                  "max": true,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sort": "avg",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 1,
+                "links": [],
+                "nullPointMode": "null",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 6,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum(irate(haproxy_backend_http_responses_total{app=\"$container\", kubernetes_namespace=\"$namespace\",code=\"5xx\"}[30s])) by (app,kubernetes_namespace) / sum(irate(haproxy_backend_http_responses_total{app=\"$container\", kubernetes_namespace=\"$namespace\"}[30s])) by (app,kubernetes_namespace)",
+                    "interval": "",
+                    "intervalFactor": 2,
+                    "legendFormat": "haproxy",
+                    "refId": "A",
+                    "step": 20
+                  },
+                  {
+                    "expr": "sum(irate(http_requests_total{app=\"$container\", handler!=\"prometheus\", kubernetes_namespace=\"$namespace\", code=~\"5[0-9]+\"}[30s])) by (kubernetes_namespace,app) / sum(irate(http_requests_total{app=\"$container\", handler!=\"prometheus\", kubernetes_namespace=\"$namespace\"}[30s])) by (kubernetes_namespace,app)",
+                    "intervalFactor": 2,
+                    "legendFormat": "native",
+                    "refId": "B",
+                    "step": 20
+                  },
+                  {
+                    "expr": "sum(irate(nginx_http_requests_total{app=\"$container\", kubernetes_namespace=\"$namespace\", status=~\"5[0-9]+\"}[30s])) by (kubernetes_namespace,app) / sum(irate(nginx_http_requests_total{app=\"$container\", kubernetes_namespace=\"$namespace\"}[30s])) by (kubernetes_namespace,app)",
+                    "intervalFactor": 2,
+                    "legendFormat": "nginx",
+                    "refId": "C",
+                    "step": 20
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Error rate",
+                "tooltip": {
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "percentunit",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": "0",
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ]
+              }
+            ],
+            "repeat": null,
+            "repeatIteration": null,
+            "repeatRowId": null,
+            "showTitle": false,
+            "title": "Request rate",
+            "titleSize": "h6"
+          },
+          {
+            "collapse": true,
+            "height": 224,
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "editable": true,
+                "error": false,
+                "fill": 1,
+                "grid": {},
+                "id": 5,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": false,
+                  "max": true,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sort": "max",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 2,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 12,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{app=\"$container\", kubernetes_namespace=\"$namespace\"}[30s])) by (app,kubernetes_namespace,le))",
+                    "intervalFactor": 1,
+                    "legendFormat": "native | 0.99",
+                    "refId": "A",
+                    "step": 1
+                  },
+                  {
+                    "expr": "histogram_quantile(0.90, sum(rate(http_request_duration_seconds_bucket{app=\"$container\", kubernetes_namespace=\"$namespace\"}[30s])) by (app,kubernetes_namespace,le))",
+                    "intervalFactor": 1,
+                    "legendFormat": "native | 0.90",
+                    "refId": "B",
+                    "step": 1
+                  },
+                  {
+                    "expr": "histogram_quantile(0.5, sum(rate(http_request_duration_seconds_bucket{app=\"$container\", kubernetes_namespace=\"$namespace\"}[30s])) by (app,kubernetes_namespace,le))",
+                    "interval": "",
+                    "intervalFactor": 1,
+                    "legendFormat": "native | 0.50",
+                    "refId": "C",
+                    "step": 1
+                  },
+                  {
+                    "expr": "histogram_quantile(0.99, sum(rate(nginx_http_request_duration_seconds_bucket{app=\"$container\", kubernetes_namespace=\"$namespace\"}[30s])) by (app,kubernetes_namespace,le))",
+                    "intervalFactor": 1,
+                    "legendFormat": "nginx | 0.99",
+                    "refId": "D",
+                    "step": 1
+                  },
+                  {
+                    "expr": "histogram_quantile(0.9, sum(rate(nginx_http_request_duration_seconds_bucket{app=\"$container\", kubernetes_namespace=\"$namespace\"}[30s])) by (app,kubernetes_namespace,le))",
+                    "intervalFactor": 1,
+                    "legendFormat": "nginx | 0.90",
+                    "refId": "E",
+                    "step": 1
+                  },
+                  {
+                    "expr": "histogram_quantile(0.5, sum(rate(nginx_http_request_duration_seconds_bucket{app=\"$container\", kubernetes_namespace=\"$namespace\"}[30s])) by (app,kubernetes_namespace,le))",
+                    "intervalFactor": 1,
+                    "legendFormat": "nginx | 0.50",
+                    "refId": "F",
+                    "step": 1
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Response time percentiles",
+                "tooltip": {
+                  "msResolution": true,
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "cumulative"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "s",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ]
+              }
+            ],
+            "repeat": null,
+            "repeatIteration": null,
+            "repeatRowId": null,
+            "showTitle": false,
+            "title": "Response time",
+            "titleSize": "h6"
+          },
+          {
+            "collapse": false,
+            "height": 250,
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "editable": true,
+                "error": false,
+                "fill": 1,
+                "id": 7,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": false,
+                  "max": true,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sort": "avg",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 1,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 12,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "count(count(container_memory_usage_bytes{container_name=\"$container\", namespace=\"$namespace\"}) by (pod_name))",
+                    "interval": "",
+                    "intervalFactor": 1,
+                    "legendFormat": "pods",
+                    "refId": "A",
+                    "step": 5
+                  },
+                  {
+                    "expr": "count(count(container_memory_usage_bytes{container_name=\"$container\", namespace=\"$namespace\"}) by (kubernetes_io_hostname))",
+                    "interval": "",
+                    "intervalFactor": 2,
+                    "legendFormat": "hosts",
+                    "refId": "B",
+                    "step": 10
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Number of pods",
+                "tooltip": {
+                  "msResolution": false,
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": "0",
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ]
+              }
+            ],
+            "repeat": null,
+            "repeatIteration": null,
+            "repeatRowId": null,
+            "showTitle": false,
+            "title": "Pod count",
+            "titleSize": "h6"
+          },
+          {
+            "collapse": false,
+            "height": 250,
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "editable": true,
+                "error": false,
+                "fill": 1,
+                "id": 12,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": false,
+                  "max": true,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sort": "avg",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 1,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [
+                  {
+                    "alias": "elasticsearch-logging-data-20170207a (logging) - system",
+                    "color": "#BF1B00"
+                  },
+                  {
+                    "alias": "elasticsearch-logging-data-20170207a (logging) - user",
+                    "color": "#508642"
+                  }
+                ],
+                "span": 12,
+                "stack": true,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum(irate(container_cpu_system_seconds_total{container_name=\"$container\", namespace=\"$namespace\"}[30s])) by (namespace,container_name) / sum(container_spec_cpu_shares{container_name=\"$container\", namespace=\"$namespace\"} / 1024) by (namespace,container_name)",
+                    "intervalFactor": 2,
+                    "legendFormat": "system",
+                    "refId": "C",
+                    "step": 10
+                  },
+                  {
+                    "expr": "sum(irate(container_cpu_user_seconds_total{container_name=\"$container\", namespace=\"$namespace\"}[30s])) by (namespace,container_name) / sum(container_spec_cpu_shares{container_name=\"$container\", namespace=\"$namespace\"} / 1024) by (namespace,container_name)",
+                    "interval": "",
+                    "intervalFactor": 2,
+                    "legendFormat": "user",
+                    "refId": "B",
+                    "step": 10
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Cpu usage (relative to request)",
+                "tooltip": {
+                  "msResolution": false,
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "percentunit",
+                    "label": "",
+                    "logBase": 1,
+                    "max": "1",
+                    "min": "0",
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ]
+              }
+            ],
+            "repeat": null,
+            "repeatIteration": null,
+            "repeatRowId": null,
+            "showTitle": false,
+            "title": "Usage relative to request",
+            "titleSize": "h6"
+          },
+          {
+            "collapse": true,
+            "height": 250,
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "editable": true,
+                "error": false,
+                "fill": 1,
+                "id": 10,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": false,
+                  "max": true,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sort": "avg",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 1,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 6,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum(irate(container_cpu_usage_seconds_total{container_name=\"$container\", namespace=\"$namespace\"}[30s])) by (namespace,container_name) / sum(container_spec_cpu_quota{container_name=\"$container\", namespace=\"$namespace\"} / container_spec_cpu_period{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name)",
+                    "interval": "",
+                    "intervalFactor": 1,
+                    "legendFormat": "actual",
+                    "metric": "",
+                    "refId": "A",
+                    "step": 1
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Cpu usage (relative to limit)",
+                "tooltip": {
+                  "msResolution": false,
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "percentunit",
+                    "label": "",
+                    "logBase": 1,
+                    "max": "1",
+                    "min": "0",
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ]
+              },
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "editable": true,
+                "error": false,
+                "fill": 1,
+                "id": 11,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": false,
+                  "max": true,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sort": "avg",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 1,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 6,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum(container_memory_usage_bytes{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name) / sum(container_spec_memory_limit_bytes{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name)",
+                    "interval": "",
+                    "intervalFactor": 1,
+                    "legendFormat": "actual",
+                    "refId": "A",
+                    "step": 1
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Memory usage (relative to limit)",
+                "tooltip": {
+                  "msResolution": false,
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "percentunit",
+                    "label": null,
+                    "logBase": 1,
+                    "max": "1",
+                    "min": "0",
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ]
+              }
+            ],
+            "repeat": null,
+            "repeatIteration": null,
+            "repeatRowId": null,
+            "showTitle": false,
+            "title": "Usage relative to limit",
+            "titleSize": "h6"
+          },
+          {
+            "collapse": true,
+            "height": 250,
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "fill": 1,
+                "id": 13,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": false,
+                  "max": true,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sort": "avg",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 1,
+                "links": [],
+                "nullPointMode": "null",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 6,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum(irate(container_cpu_usage_seconds_total{container_name=\"$container\", namespace=\"$namespace\"}[30s])) by (id,pod_name)",
+                    "interval": "",
+                    "intervalFactor": 2,
+                    "legendFormat": "{{pod_name}}",
+                    "refId": "A",
+                    "step": 2
+                  },
+                  {
+                    "expr": "sum(container_spec_cpu_quota{container_name=\"$container\", namespace=\"$namespace\"} / container_spec_cpu_period{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name) / count(container_memory_usage_bytes{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name) ",
+                    "intervalFactor": 2,
+                    "legendFormat": "limit",
+                    "refId": "B",
+                    "step": 2
+                  },
+                  {
+                    "expr": "sum(container_spec_cpu_shares{container_name=\"$container\", namespace=\"$namespace\"} / 1024) by (namespace,container_name) / count(container_spec_cpu_shares{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name) ",
+                    "intervalFactor": 2,
+                    "legendFormat": "request",
+                    "refId": "C",
+                    "step": 2
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Cpu usage (per pod)",
+                "tooltip": {
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "short",
+                    "label": "cores",
+                    "logBase": 1,
+                    "max": null,
+                    "min": "0",
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ]
+              },
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "fill": 1,
+                "id": 14,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": false,
+                  "max": true,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sort": "avg",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 1,
+                "links": [],
+                "nullPointMode": "null",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 6,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum(container_memory_usage_bytes{container_name=\"$container\", namespace=\"$namespace\"}) by (id,pod_name)",
+                    "interval": "",
+                    "intervalFactor": 2,
+                    "legendFormat": "{{pod_name}}",
+                    "refId": "A",
+                    "step": 2
+                  },
+                  {
+                    "expr": "sum(container_spec_memory_limit_bytes{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name) / count(container_memory_usage_bytes{container_name=\"$container\", namespace=\"$namespace\"}) by (container_name,namespace)",
+                    "intervalFactor": 2,
+                    "legendFormat": "limit",
+                    "refId": "B",
+                    "step": 2
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Memory usage (per pod)",
+                "tooltip": {
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "bytes",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": "0",
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ]
+              }
+            ],
+            "repeat": null,
+            "repeatIteration": null,
+            "repeatRowId": null,
+            "showTitle": false,
+            "title": "Usage per pod",
+            "titleSize": "h6"
+          },
+          {
+            "collapse": true,
+            "height": 250,
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "editable": true,
+                "error": false,
+                "fill": 1,
+                "id": 8,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": false,
+                  "max": true,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sort": "avg",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 1,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 6,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum(irate(container_cpu_usage_seconds_total{container_name=\"$container\", namespace=\"$namespace\"}[30s])) by (namespace,container_name) / count(container_memory_usage_bytes{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name) ",
+                    "interval": "",
+                    "intervalFactor": 1,
+                    "legendFormat": "actual",
+                    "refId": "A",
+                    "step": 1
+                  },
+                  {
+                    "expr": "sum(container_spec_cpu_quota{container_name=\"$container\", namespace=\"$namespace\"} / container_spec_cpu_period{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name) / count(container_memory_usage_bytes{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name) ",
+                    "interval": "",
+                    "intervalFactor": 1,
+                    "legendFormat": "limit",
+                    "refId": "B",
+                    "step": 1
+                  },
+                  {
+                    "expr": "sum(container_spec_cpu_shares{container_name=\"$container\", namespace=\"$namespace\"} / 1024) by (namespace,container_name) / count(container_spec_cpu_shares{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name) ",
+                    "interval": "",
+                    "intervalFactor": 1,
+                    "legendFormat": "request",
+                    "refId": "C",
+                    "step": 1
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Cpu usage (avg per pod)",
+                "tooltip": {
+                  "msResolution": false,
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "none",
+                    "label": "cores",
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ]
+              },
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "editable": true,
+                "error": false,
+                "fill": 1,
+                "id": 9,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": false,
+                  "max": true,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sort": "avg",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 1,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 6,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum(container_memory_usage_bytes{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name) / count(container_memory_usage_bytes{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name) ",
+                    "intervalFactor": 1,
+                    "legendFormat": "actual",
+                    "metric": "",
+                    "refId": "A",
+                    "step": 1
+                  },
+                  {
+                    "expr": "sum(container_spec_memory_limit_bytes{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name) / count(container_memory_usage_bytes{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name) ",
+                    "interval": "",
+                    "intervalFactor": 1,
+                    "legendFormat": "limit",
+                    "refId": "B",
+                    "step": 1
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Memory usage (avg per pod)",
+                "tooltip": {
+                  "msResolution": false,
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "bytes",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": "0",
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ]
+              }
+            ],
+            "repeat": null,
+            "repeatIteration": null,
+            "repeatRowId": null,
+            "showTitle": false,
+            "title": "Usage per pod (average)",
+            "titleSize": "h6"
+          },
+          {
+            "collapse": true,
+            "height": 259.4375,
+            "panels": [
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "editable": true,
+                "error": false,
+                "fill": 1,
+                "grid": {},
+                "id": 1,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": false,
+                  "max": true,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sort": "avg",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 2,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 6,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum(irate(container_cpu_usage_seconds_total{container_name=\"$container\", namespace=\"$namespace\"}[30s])) by (namespace,container_name)",
+                    "hide": false,
+                    "interval": "",
+                    "intervalFactor": 1,
+                    "legendFormat": "actual",
+                    "metric": "",
+                    "refId": "A",
+                    "step": 1
+                  },
+                  {
+                    "expr": "sum(container_spec_cpu_quota{container_name=\"$container\", namespace=\"$namespace\"} / container_spec_cpu_period{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name)",
+                    "intervalFactor": 1,
+                    "legendFormat": "limit",
+                    "refId": "B",
+                    "step": 1
+                  },
+                  {
+                    "expr": "sum(container_spec_cpu_shares{container_name=\"$container\", namespace=\"$namespace\"} / 1024) by (namespace,container_name) ",
+                    "intervalFactor": 1,
+                    "legendFormat": "request",
+                    "refId": "C",
+                    "step": 1
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Cpu usage (total)",
+                "tooltip": {
+                  "msResolution": true,
+                  "shared": false,
+                  "sort": 0,
+                  "value_type": "cumulative"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "none",
+                    "label": "cores",
+                    "logBase": 1,
+                    "max": null,
+                    "min": 0,
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ]
+              },
+              {
+                "aliasColors": {},
+                "bars": false,
+                "datasource": "prometheus",
+                "editable": true,
+                "error": false,
+                "fill": 1,
+                "grid": {},
+                "id": 2,
+                "legend": {
+                  "alignAsTable": true,
+                  "avg": true,
+                  "current": false,
+                  "max": true,
+                  "min": false,
+                  "rightSide": true,
+                  "show": true,
+                  "sort": "avg",
+                  "sortDesc": true,
+                  "total": false,
+                  "values": true
+                },
+                "lines": true,
+                "linewidth": 2,
+                "links": [],
+                "nullPointMode": "connected",
+                "percentage": false,
+                "pointradius": 5,
+                "points": false,
+                "renderer": "flot",
+                "seriesOverrides": [],
+                "span": 6,
+                "stack": false,
+                "steppedLine": false,
+                "targets": [
+                  {
+                    "expr": "sum(container_memory_usage_bytes{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name)",
+                    "interval": "",
+                    "intervalFactor": 1,
+                    "legendFormat": "actual",
+                    "refId": "A",
+                    "step": 1
+                  },
+                  {
+                    "expr": "sum(container_spec_memory_limit_bytes{container_name=\"$container\", namespace=\"$namespace\"}) by (namespace,container_name)",
+                    "intervalFactor": 1,
+                    "legendFormat": "limit",
+                    "refId": "B",
+                    "step": 1
+                  }
+                ],
+                "thresholds": [],
+                "timeFrom": null,
+                "timeShift": null,
+                "title": "Memory usage (total)",
+                "tooltip": {
+                  "msResolution": true,
+                  "shared": false,
+                  "sort": 0,
+                  "value_type": "cumulative"
+                },
+                "type": "graph",
+                "xaxis": {
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": []
+                },
+                "yaxes": [
+                  {
+                    "format": "bytes",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": "0",
+                    "show": true
+                  },
+                  {
+                    "format": "short",
+                    "label": null,
+                    "logBase": 1,
+                    "max": null,
+                    "min": null,
+                    "show": true
+                  }
+                ]
+              }
+            ],
+            "repeat": null,
+            "repeatIteration": null,
+            "repeatRowId": null,
+            "showTitle": false,
+            "title": "Usage total",
+            "titleSize": "h6"
+          }
+        ],
+        "schemaVersion": 14,
+        "style": "dark",
+        "tags": [],
+        "templating": {
+          "list": [
+            {
+              "allValue": ".+",
+              "current": {},
+              "datasource": "prometheus",
+              "hide": 0,
+              "includeAll": false,
+              "label": null,
+              "multi": false,
+              "name": "namespace",
+              "options": [],
+              "query": "label_values(container_memory_usage_bytes{namespace=~\".+\",container_name!=\"POD\"},namespace)",
+              "refresh": 1,
+              "regex": "",
+              "sort": 1,
+              "tagValuesQuery": null,
+              "tags": [],
+              "tagsQuery": null,
+              "type": "query",
+              "useTags": false
+            },
+            {
+              "allValue": ".+",
+              "current": {},
+              "datasource": "prometheus",
+              "hide": 0,
+              "includeAll": false,
+              "label": null,
+              "multi": false,
+              "name": "container",
+              "options": [],
+              "query": "label_values(container_memory_usage_bytes{namespace=~\"$namespace\",container_name!=\"POD\"},container_name)",
+              "refresh": 1,
+              "regex": "",
+              "sort": 1,
+              "tagValuesQuery": null,
+              "tags": [],
+              "tagsQuery": null,
+              "type": "query",
+              "useTags": false
+            }
+          ]
+        },
+        "time": {
+          "from": "now-3h",
+          "to": "now"
+        },
+        "timepicker": {
+          "refresh_intervals": [
+            "5s",
+            "10s",
+            "30s",
+            "1m",
+            "5m",
+            "15m",
+            "30m",
+            "1h",
+            "2h",
+            "1d"
+          ],
+          "time_options": [
+            "5m",
+            "15m",
+            "1h",
+            "6h",
+            "12h",
+            "24h",
+            "2d",
+            "7d",
+            "30d"
+          ]
+        },
+        "timezone": "browser",
+        "title": "Kubernetes App Metrics",
+        "version": 37,
+        "description": "After selecting your namespace and container you get a wealth of metrics like request rate, error rate, response times, pod count, cpu and memory usage. You can view cpu and memory usage in a variety of ways, compared to the limit, compared to the request, per pod, average per pod, etc."
+      }
