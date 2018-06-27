@@ -30,6 +30,9 @@ pipeline {
                     }                    
                     sh "./jx/scripts/ci-gke.sh"
                     sh "jx version -b"
+
+                    // lets test we have the jenkins token setup
+                    sh "jx get pipeline"
                     
 /*
                     retry(3){
