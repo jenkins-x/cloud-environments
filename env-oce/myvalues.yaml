@@ -8,3 +8,7 @@ monocular:
   mongodb: 
     persistence: 
       size: 50Gi
+
+jenkins:
+  Agent:
+    KubernetesServerURL: "https://kubernetes.default.svc"
