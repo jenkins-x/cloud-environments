@@ -6,5 +6,5 @@ jenkins:
     # lets enable ECR docker builds
     DockerConfig: |-
       {
-	    "credsStore": "ecr-login"
+        "credsStore": "ecr-login"
       }
