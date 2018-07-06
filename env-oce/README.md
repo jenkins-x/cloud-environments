@@ -1,1 +1,0 @@
-# Base Jenkins X Oracle Cloud Infrastructure Container Engine for Kubernetes
