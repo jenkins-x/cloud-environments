@@ -1,0 +1,13 @@
+# Override configuration from https://github.com/jenkins-x/jenkins-x-platform/blob/master/values.yaml
+exposecontroller:
+  exposecontroller:
+    HTTP: "true"
+    TLSACME: "false"
+                
+# we need to disable mongodb persistence on OpenShift
+# see https://blog.openshift.com/deploy-monocular-openshift/    
+monocular:
+  mongodb:
+    persistence:
+      enabled: false    
+            
