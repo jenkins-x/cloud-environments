@@ -68,7 +68,7 @@ kubectl get ingress
 
 You may notice that the thunder/secrets.yaml is encrypted.  This means we can commit and push to github our production secrets so when we reprovision the environment we simply clone, helm decode and install / upgrade from a CI/CD pipeline.  More details on how to setup the helm wrapper and gpg keys so you can do this yourself on your own fork.
 
-This means our entire cloud environments are competely recreatable and both configureation and secrets have a tracability and an adit trail.
+This means our entire cloud environments are competely recreatable and both configuration and secrets have a tracability and an adit trail.
 
 ## Credentials
 
