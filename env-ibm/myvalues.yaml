@@ -1,1 +1,12 @@
 # Override configuration from https://github.com/jenkins-x/jenkins-x-platform/blob/master/values.yaml
+monocular:
+  mongodb:
+    persistence:
+      enabled: false 
+# Smaller cluster configurations require more time   
+jenkins:
+  Master:
+    Readiness:
+      InitialDelaySeconds: 600
+    Liveness:
+      InitialDelaySeconds: 660
