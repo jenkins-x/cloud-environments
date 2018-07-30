@@ -21,6 +21,9 @@ pipeline {
                 SERVICE_ACCOUNT_FILE = "$GKE_SA"
                 GHE_TOKEN = "$GHE_CREDS_PSW"
                 JENKINS_PASSWORD="$JENKINS_CREDS_PSW"
+
+                JX_DISABLE_DELETE_APP  = "true"
+                JX_DISABLE_DELETE_REPO = "true"
             }
             steps {
                 container('go') {
