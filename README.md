@@ -2,7 +2,7 @@
 
 This repository contains a number of [Jenkins X](https://jenkins-x.github.io/jenkins-x-website/) environments including cloud specific configuration and encrypted production secrets that can be applied to any kubernetes cluster via a Makefile or Jenkins Pipelines.
 
-# Prerequisits
+# Prerequisites
 
 Access to a kubernetes cluster and connected kubectl context so you can run `kubectl get pods` for example.  If you don't have access to a remote kubernetes cluster you can use minikube to run locally.
 
