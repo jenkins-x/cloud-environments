@@ -3,3 +3,37 @@ exposecontroller:
   exposecontroller:
     HTTP: "true"
     TLSACME: "false"
+chartmuseum:
+  enabled: true
+  service:
+    annotations:
+      fabric8.io/expose: "true"
+      fabric8.io/ingress.annotations: "kubernetes.io/ingress.class: nginx"
+  persistence:
+    Enabled: true
+    AccessMode: ReadWriteOnce
+    Size: 8Gi
+  env:
+    open:
+      AUTH_ANONYMOUS_GET: true
+      DISABLE_API: false
+      STORAGE: google
+      GOOGLE_BUCKET: jenkinsx-chartmuseum
+      GOOGLE_PREFIX: charts
+    secret:
+      BASIC_AUTH_USER: admin
+      BASIC_AUTH_PASS: admin
+    gcp:
+      secret:
+        enabled: true
+        name: gcs-jenkinsx-chartmuseum
+        key: gcs-chartmuseum.key.json
+  image:
+    tag: v0.2.8
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 160m
+      memory: 128Mi
