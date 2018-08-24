@@ -1,8 +1,4 @@
 # Override configuration from https://github.com/jenkins-x/jenkins-x-platform/blob/master/values.yaml
-exposecontroller:
-  exposecontroller:
-    HTTP: "true"
-    TLSACME: "false"
 chartmuseum:
   enabled: true
   service:
@@ -37,3 +33,26 @@ chartmuseum:
     requests:
       cpu: 160m
       memory: 128Mi
+
+jenkins:
+  Agent:
+    PodTemplates:
+      Maven:
+        Containers:
+          Maven:
+            Image: jenkinsxio/builder-maven:latest
+        volumes:
+        - type: Secret
+          secretName: jenkins-maven-settings
+          mountPath: /root/.m2/
+        - type: Secret
+          secretName: jenkins-docker-cfg
+          mountPath: /home/jenkins/.docker
+      Nodejs:
+        Containers:
+          Nodejs:
+            Image: jenkinsxio/builder-nodejs:latest
+      Go:
+        Containers:
+          Go:
+            Image: jenkinsxio/builder-go:latest
