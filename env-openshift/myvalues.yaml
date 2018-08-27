@@ -12,8 +12,7 @@ monocular:
       enabled: false  
       
 jenkins:
-  Servers:
-    Global:
-      EnvVars:
-        DOCKER_REGISTRY: "docker-registry.default.svc:5000"      
+  Global:
+    EnvVars: 
+      DOCKER_REGISTRY: "docker-registry.default.svc:5000"      
             
