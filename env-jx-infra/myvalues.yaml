@@ -10,11 +10,11 @@ chartmuseum:
       STORAGE: google
       STORAGE_GOOGLE_BUCKET: jenkinsx-chartmuseum
       STORAGE_GOOGLE_PREFIX: charts
-    gcp:
-      secret:
-        enabled: true
-        name: gcs-jenkinsx-chartmuseum
-        key: gcs-chartmuseum.key.json
+  gcp:
+    secret:
+      enabled: true
+      name: gcs-jenkinsx-chartmuseum
+      key: gcs-chartmuseum.key.json
 
 monocular:
   api:
