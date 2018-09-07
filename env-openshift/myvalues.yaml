@@ -9,5 +9,8 @@ exposecontroller:
 monocular:
   mongodb:
     persistence:
-      enabled: false    
+      enabled: false
+      
+docker-registry:
+  enabled: false
             
