@@ -7,6 +7,6 @@ monocular:
 jenkins:
   Master:
     Readiness:
-      InitialDelaySeconds: 600
+      InitialDelaySeconds: 10
     Liveness:
-      InitialDelaySeconds: 660
+      InitialDelaySeconds: 10
