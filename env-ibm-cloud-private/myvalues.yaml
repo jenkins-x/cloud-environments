@@ -17,8 +17,8 @@ jenkins:
         TILLER_NAMESPACE: {{ .Release.Namespace }}
   Master:
     Readiness:
-      InitialDelaySeconds: 600
+      InitialDelaySeconds: 10
     Liveness:
-      InitialDelaySeconds: 660
+      InitialDelaySeconds: 10
  
   
