@@ -5,8 +5,20 @@ monocular:
       enabled: false 
 # Smaller cluster configurations require more time   
 jenkins:
+ Servers:
+    # global node properties
+    Global:
+      EnvVars:
+        # Override this if your cluster name is not mycluster.icp (the default for IBM Cloud Private)
+        # Override with --docker-registry
+        DOCKER_REGISTRY: mycluster.icp:8500/{{ .Release.Namespace }}
+        # This relies on your tiller being set up in the same namespace that you install jx into
+        # Override with --tiller-namespace
+        TILLER_NAMESPACE: {{ .Release.Namespace }}
   Master:
     Readiness:
-      InitialDelaySeconds: 10
+      InitialDelaySeconds: 600
     Liveness:
-      InitialDelaySeconds: 10
+      InitialDelaySeconds: 660
+ 
+  
