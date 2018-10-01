@@ -27,10 +27,11 @@ pipeline {
             }
             steps {
                 container('go') {
+                    sh "jx step git credentials"
                     dir ('/home/jenkins/go/src/github.com/jenkins-x/godog-jx'){
                         git "https://github.com/jenkins-x/godog-jx"
                         sh "make configure-ghe"
-                    }                    
+                    }
                     sh "./jx/scripts/ci-gke.sh"
                     sh "jx version -b"
 
