@@ -9,14 +9,10 @@ jenkins:
     # global node properties
     Global:
       EnvVars:
-        # Override this if your cluster name is not mycluster.icp (the default for IBM Cloud Private)
-        # Override with --docker-registry
-        # I want to use {{ .Release.Namespace }} here but can't...
-        DOCKER_REGISTRY: mycluster.icp:8500/jx
+        # Override this if your cluster name is not mycluster.icp (the default for IBM Cloud Private) with --docker-registry
+        DOCKER_REGISTRY: mycluster.icp:8500/jx        
+        # Override with --tiller-namespace so jx will use a tiller other than one at default
         TILLER_NAMESPACE: jx
-        # I would put TILLER_NAMESPACE: {{ .RELEASE.NAMESPACE }} here but it's not a key
-        # This relies on your tiller being set up in the same namespace that you install jx into
-        # Override with --tiller-namespace
   Master:
     Readiness:
       InitialDelaySeconds: 10
