@@ -9,5 +9,12 @@ exposecontroller:
 monocular:
   mongodb:
     persistence:
-      enabled: false    
-            
+      enabled: false
+      
+docker-registry:
+  enabled: false
+
+jenkins:
+  Global:
+    EnvVars: 
+      DOCKER_REGISTRY: "docker-registry.default.svc:5000"
