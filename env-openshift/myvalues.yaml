@@ -20,7 +20,7 @@ jenkins:
     ImageTag: "latest"
     ServiceAccountAnnotations: |
       serviceaccounts.openshift.io/oauth-redirectreference.jenkins: >-
-        {"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"jenkins"}}}
+        {"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"jenkins"}}
     AuthorizationStrategyClass: "hudson.security.GlobalMatrixAuthorizationStrategy"
     AuthorizationStrategyAttributes:
     - name: "permission"
