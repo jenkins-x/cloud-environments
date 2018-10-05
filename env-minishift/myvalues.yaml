@@ -14,8 +14,8 @@ docker-registry:
             
 jenkins:
   Master:
-    Image: "jenkinsxio/jenkinsx-openshift"
-    ImageTag: "latest"
+    Image: "davidconde/jenkinsx-openshift"
+    ImageTag: "0.0.1"
     ServiceAccountAnnotations: |
       serviceaccounts.openshift.io/oauth-redirectreference.jenkins: >-
         {"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"jenkins"}}
