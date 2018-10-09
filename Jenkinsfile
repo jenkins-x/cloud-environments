@@ -1,13 +1,11 @@
 pipeline {
+    agent any
     environment {
         GH_CREDS = credentials('jenkins-x-github')
         GKE_SA = credentials('gke-sa')
         GHE_CREDS = credentials('ghe-test-user')
         JENKINS_CREDS = credentials('test-jenkins-user')
         GIT_PROVIDER_URL = "https://github.beescloud.com"
-    }
-    agent {
-        label "jenkins-go"
     }
     stages {
         stage('CI Build') {
@@ -26,28 +24,20 @@ pipeline {
                 JX_DISABLE_DELETE_REPO = "true"
             }
             steps {
-                container('go') {
-                    sh "jx step git credentials"
-                    dir ('/home/jenkins/go/src/github.com/jenkins-x/godog-jx'){
-                        git "https://github.com/jenkins-x/godog-jx"
-                        sh "make configure-ghe"
-                    }
-                    sh "./jx/scripts/ci-gke.sh"
-                    sh "jx version -b"
+                sh "jx step git credentials"
+                dir ('/home/jenkins/go/src/github.com/jenkins-x/godog-jx'){
+                    git "https://github.com/jenkins-x/godog-jx"
+                    sh "make configure-ghe"
+                }
+                sh "./jx/scripts/ci-gke.sh"
+                sh "jx version -b"
 
-                    // lets test we have the jenkins token setup
-                    sh "jx get pipeline"
-                    
-/*
-                    retry(3){
-                        sh "jx create jenkins user --headless --password $JENKINS_PASSWORD admin"
-                    }
-*/
-
-                    dir ('/home/jenkins/go/src/github.com/jenkins-x/godog-jx'){
-                        git "https://github.com/jenkins-x/godog-jx"
-                        sh "make bdd-tests"
-                    }
+                // lets test we have the jenkins token setup
+                sh "jx get pipeline"
+                
+                dir ('/home/jenkins/go/src/github.com/jenkins-x/godog-jx'){
+                    git "https://github.com/jenkins-x/godog-jx"
+                    sh "make bdd-tests"
                 }
             }
         }
