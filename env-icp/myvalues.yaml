@@ -2,8 +2,12 @@
 monocular:
   mongodb:
     persistence:
-      enabled: false 
-# Smaller cluster configurations require more time   
+      enabled: false
+
+# We'll be using the IBM Cloud Private registry
+docker-registry:
+  enabled: false
+  
 jenkins:
   Servers:
     # global node properties
