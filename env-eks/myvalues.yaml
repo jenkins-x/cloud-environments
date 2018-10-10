@@ -7,3 +7,6 @@ PipelineSecrets:
     {
       "credsStore": "ecr-login"
     }
+    
+docker-registry:
+  enabled: false    
