@@ -1,1 +1,0 @@
-# Base Jenkins X IBM Cloud environment
