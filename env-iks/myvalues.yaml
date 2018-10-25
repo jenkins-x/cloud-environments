@@ -1,8 +1,9 @@
 # Override configuration from https://github.com/jenkins-x/jenkins-x-platform/blob/master/values.yaml
-monocular:
-  mongodb:
-    persistence:
-      enabled: false 
+jenkins:
+  Servers:
+    Global:
+      EnvVars:
+        DOCKER_REGISTRY: "registry.ng.bluemix.net"
 # Smaller cluster configurations require more time   
 jenkins:
   Master:
