@@ -8,7 +8,7 @@ chartmuseum:
       AUTH_ANONYMOUS_GET: true
       DISABLE_API: false
       STORAGE: google
-      STORAGE_GOOGLE_BUCKET: jenkinsx-chartmuseum
+      STORAGE_GOOGLE_BUCKET: chartmuseum.jenkins-x.io
       STORAGE_GOOGLE_PREFIX: charts
   gcp:
     secret:
