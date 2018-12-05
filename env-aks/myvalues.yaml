@@ -7,3 +7,6 @@ PipelineSecrets:
     {
       "credsStore": "acr-linux"
     }
+    
+docker-registry:
+  enabled: false    
