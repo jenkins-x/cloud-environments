@@ -1,7 +1,6 @@
 pipeline {
     agent any
     environment {
-        GH_CREDS = credentials('jenkins-x-github')
         GKE_SA = credentials('gke-sa')
         GHE_CREDS = credentials('ghe-test-user')
         JENKINS_CREDS = credentials('test-jenkins-user')
