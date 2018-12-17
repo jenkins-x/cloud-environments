@@ -2,7 +2,8 @@ pipeline {
     agent any
     environment {
         GKE_SA = credentials('gke-sa')
-        GHE_CREDS = credentials('ghe-test-user')
+        GH_CREDS = credentials('jx-pipeline-git-github-github')
+        GHE_CREDS = credentials('jx-pipeline-git-github-ghe')
         JENKINS_CREDS = credentials('test-jenkins-user')
         GIT_PROVIDER_URL = "https://github.beescloud.com"
     }
