@@ -4,7 +4,7 @@ This repository contains a number of [Jenkins X](https://jenkins-x.github.io/jen
 
 # Prerequisites
 
-Access to a kubernetes cluster and connected kubectl context so you can run `kubectl get pods` for example.  If you don't have access to a remote kubernetes cluster you can use minikube to run locally.
+Access to a kubernetes cluster and connected kubectl context so you can run `kubectl get pods` for example. If you don't have access to a remote kubernetes cluster you can use minikube to run locally.
 
 If you don't need minikube skip to the [helm](#helm) Prerequisits
 
@@ -15,7 +15,7 @@ minikube start --vm-driver hyperkit --cpus 4 --memory 4096
 ```
 
 ## Helm
-We use [helm](https://github.com/kubernetes/helm) as the package manager and for it's install / upgrade features.  So first get the helm binary 
+We use [helm](https://github.com/kubernetes/helm) as the package manager and for it's install / upgrade features. So first get the helm binary 
 
 If you are on OSX simply run:
 ```
@@ -35,7 +35,7 @@ helm init
 
 # Install
 
-Fork and clone this repo and choose the the environment you wish to install into from the list below.  Then change directory into the matching environment and run `make install`.
+Fork and clone this repo and choose the the environment you wish to install into from the list below. Then change directory into the matching environment and run `make install`.
 
 List of environments:
 - __minikube__ - this is the most popular way to kick the tires locally
@@ -66,9 +66,9 @@ kubectl get ingress
 
 # Secrets
 
-You may notice that the thunder/secrets.yaml is encrypted.  This means we can commit and push to github our production secrets so when we reprovision the environment we simply clone, helm decode and install / upgrade from a CI/CD pipeline.  More details on how to setup the helm wrapper and gpg keys so you can do this yourself on your own fork.
+You may notice that the thunder/secrets.yaml is encrypted. This means we can commit and push to github our production secrets so when we reprovision the environment we simply clone, helm decode and install / upgrade from a CI/CD pipeline. More details on how to setup the helm wrapper and gpg keys so you can do this yourself on your own fork.
 
-This means our entire cloud environments are competely recreatable and both configuration and secrets have a tracability and an adit trail.
+This means our entire cloud environments are competely recreatable and both configuration and secrets have a tracability and an audit trail.
 
 ## Credentials
 
@@ -85,7 +85,7 @@ The default credentials for test purposes are below, please either change the ra
 
 ## Changing admin passwords
 
-You can override these admin passwords in the secrets.yaml of each environment.  Currently the kubernetes dashboard and chartmuseum are protected by basic auth at the nginx ingress controller layer.  To change this admin password the property to override in the helm values.yaml is `JXBasicAuth:`.
+You can override these admin passwords in the secrets.yaml of each environment. Currently the kubernetes dashboard and chartmuseum are protected by basic auth at the nginx ingress controller layer. To change this admin password the property to override in the helm values.yaml is `JXBasicAuth:`.
 
 So generate a new password using:
 ```
@@ -101,5 +101,5 @@ Now you can override the `JXBasicAuth:` property in your secrets.yaml
 
 # Local developement
 
-This repo is for installing a released platform version.  If you want to develop and contribute please head over to the https://github.com/jenkins-x/jenkins-x-platform repo.
+This repo is for installing a released platform version. If you want to develop and contribute please head over to the https://github.com/jenkins-x/jenkins-x-platform repo.
 
