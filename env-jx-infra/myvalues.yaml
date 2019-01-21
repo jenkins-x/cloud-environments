@@ -21,6 +21,9 @@ monocular:
     livenessProbe:
       initialDelaySeconds: 1000
 
+controllerbuild:
+  enabled: true
+
 jenkins:
   Agent:
     PodTemplates:
