@@ -22,11 +22,16 @@ pipeline {
 
                 JX_DISABLE_DELETE_APP  = "true"
                 JX_DISABLE_DELETE_REPO = "true"
+
+                // lets use a separate cluster
+                JX_HOME="/tmp/jxhome"
+                KUBECONFIG="/tmp/jxhome/config"
             }
             steps {
+                sh "mkdir -p $JX_HOME"
+
                 sh "jx --version"
                 sh "jx step git credentials"
-
 
                 sh "jx step bdd --config jx/bdd/clusters.yaml --gopath /tmp/cheese --git-provider=ghe --git-provider-url=https://github.beescloud.com --git-username dev1 --git-api-token $GHE_CREDS_PSW --default-admin-password $JENKINS_CREDS_PSW --no-delete-app --no-delete-repo --tests test-create-spring"
 
