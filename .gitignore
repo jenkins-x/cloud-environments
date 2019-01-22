@@ -1,2 +1,6 @@
 *.dec
 .idea
+
+# test reports
+jxhome
+jenkins-x-dev-environment

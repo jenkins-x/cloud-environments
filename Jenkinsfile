@@ -24,7 +24,13 @@ pipeline {
                 JX_DISABLE_DELETE_REPO = "true"
             }
             steps {
+                sh "jx --version"
                 sh "jx step git credentials"
+
+
+                sh "jx step bdd --config jx/bdd/clusters.yaml --gopath /tmp/cheese --git-provider=ghe --git-provider-url=https://github.beescloud.com --git-username dev1 --git-api-token $GHE_CREDS_PSW --default-admin-password $JENKINS_CREDS_PSW --no-delete-app --no-delete-repo --tests test-create-spring"
+
+                /*
                 dir ('/home/jenkins/go/src/github.com/jenkins-x/godog-jx'){
                     git "https://github.com/jenkins-x/godog-jx"
                     sh "make configure-ghe"
@@ -39,6 +45,7 @@ pipeline {
                     git "https://github.com/jenkins-x/godog-jx"
                     sh "make bdd-tests"
                 }
+                */
             }
         }
 
