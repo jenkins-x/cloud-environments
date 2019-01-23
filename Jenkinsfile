@@ -23,6 +23,9 @@ pipeline {
                 JX_DISABLE_DELETE_APP  = "true"
                 JX_DISABLE_DELETE_REPO = "true"
 
+                // enable debug logging
+                GINKGO_ARGS            = "-v"
+
                 // lets use a separate cluster
                 JX_HOME="/tmp/jxhome"
                 KUBECONFIG="/tmp/jxhome/config"
