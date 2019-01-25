@@ -22,23 +22,16 @@ pipeline {
 
                 JX_DISABLE_DELETE_APP  = "true"
                 JX_DISABLE_DELETE_REPO = "true"
+
+                // enable debug logging
+                GINKGO_ARGS            = "-v"
+
+                // lets use a separate cluster
+                JX_HOME="/tmp/jxhome"
+                KUBECONFIG="/tmp/jxhome/config"
             }
             steps {
-                sh "jx step git credentials"
-                dir ('/home/jenkins/go/src/github.com/jenkins-x/godog-jx'){
-                    git "https://github.com/jenkins-x/godog-jx"
-                    sh "make configure-ghe"
-                }
-                sh "./jx/scripts/ci-gke.sh"
-                sh "jx version -b"
-
-                // lets test we have the jenkins token setup
-                sh "jx get pipeline"
-                
-                dir ('/home/jenkins/go/src/github.com/jenkins-x/godog-jx'){
-                    git "https://github.com/jenkins-x/godog-jx"
-                    sh "make bdd-tests"
-                }
+                sh "./jx/scripts/bdd.sh"
             }
         }
 
