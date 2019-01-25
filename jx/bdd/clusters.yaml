@@ -4,6 +4,7 @@ clusters:
       - create
       - cluster
       - gke
+      - --version=0.0.3313
       - --project-id=jenkinsx-dev
       - --no-tiller
       - -m=n1-standard-2
