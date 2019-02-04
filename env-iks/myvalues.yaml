@@ -11,3 +11,6 @@ jenkins:
       InitialDelaySeconds: 600
     Liveness:
       InitialDelaySeconds: 660
+      
+docker-registry:
+  enabled: false      
