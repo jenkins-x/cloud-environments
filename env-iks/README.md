@@ -103,14 +103,14 @@ NOTE: If you run into problems or want to customize parts of the setup, follow t
 
 * Make block default
 
-```
+```bash
     kubectl patch storageclass ibmc-file-bronze -p \
         '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
 ```
 
 * Alternatively (if included in your plan) you can also choose `ibmc-block-silver` or `ibmc-block-gold` for better IOPS
 
-```
+```bash
     kubectl patch storageclass ibmc-block-bronze -p \
         '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 ```
@@ -121,7 +121,7 @@ WARNING: This does not work and needs further testing/investigation!
 
 Note: There is also a jenkins- addon, may work but never tested with IBM Cloud
 
-```
+```bash
 helm install \
     --namespace=kube-system \
     --name=cert-manager stable/cert-manager \
@@ -149,7 +149,7 @@ EOF
 * answer Y to create ingress when asked,
 * Specify `--http=false --tls-acme=true` if you have configured https
 
-```
+```bash
 jx install cluster --provider=iks \
     --domain='jx-wdc07.us-east.containers.appdomain.cloud' \
     [ --default-admin-password=<password> ] \ 
