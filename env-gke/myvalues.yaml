@@ -6,10 +6,10 @@ PipelineSecrets:
   DockerConfig: |-
     {
         "credHelpers": {
-            "gcr.io": "gcloud",
-            "us.gcr.io": "gcloud",
-            "eu.gcr.io": "gcloud",
-            "asia.gcr.io": "gcloud",
-            "staging-k8s.gcr.io": "gcloud"
+            "gcr.io": "gcr",
+            "us.gcr.io": "gcr",
+            "eu.gcr.io": "gcr",
+            "asia.gcr.io": "gcr",
+            "staging-k8s.gcr.io": "gcr"
         }
     }
