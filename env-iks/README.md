@@ -54,7 +54,7 @@ jx create cluster iks \
    -z wdc04 \
    -m b2c.4x16 \
    --workers=3 \
-   --kube-version=1.10.12 \
+   --kube-version=1.11.9 \
    \
    --namespace='jx'
 ```
@@ -71,31 +71,43 @@ NOTE: If you run into problems or want to customize parts of the setup, follow t
 * Set the region (eg. us-east, cf. [issue 2984](https://github.com/jenkins-x/jx/issues/2984)): `ibmcloud ks region-set us-east`
 * Find a zone (eg. wdc07): `ibmcloud ks zones`
 * Find machine types (should use `b2c.4x16 minimum`): `ibmcloud ks machine-types --zone wdc07`
-* Find the k8s 1.10.x version: `ibmcloud ks kube-versions`
+* Find the k8s 1.11.x version: `ibmcloud ks kube-versions`
 * Find the Public and private vlans (if none exist, they will be created): `ibmcloud ks vlans --zone wdc07`
 * Create VLANs, if vlans exist in the zone, they will need to be specified here otherwise they will be created.
-  If you want to use let's encrypt make sure to specify a cluster name so that `docker-registry.jx.<clustername>.<regionname>.containers.appdomain.cloud` is less than 64 characters (will be checked automatically during install), eg., `docker-registry.jx.jx-wdc07.us-east.container.appdomain.cloud < 64 chars` (Smallest possible is best).
+* If you want to use let's encrypt, make sure to specify a cluster name so that `docker-registry.jx.<clustername>.<regionname>.containers.appdomain.cloud` is less than 64 characters (will be checked automatically during install), eg., `docker-registry.jx.jx-wdc07.us-east.container.appdomain.cloud < 64 chars` (Smallest possible is best).
 * Set up the cluster (some parameters depend on your settings before or what resource types are available in the chosen region, zone etc.):
 
 ```bash
     ibmcloud ks cluster-create \
         --name jx-wdc07 \
-        --kube-version 1.10.12 \ 
+        --kube-version 1.11.9 \ 
         --zone wdc07 \
         --machine-type b2c.4x16 \
         --workers 3 \
-        [--private-vlan 2323675 --public-vlan 2323691]
+        --private-vlan 2323675 \
+        --public-vlan 2323691
 ```
 
 * Check until state is "normal" (takes about 25 minutes): `ibmcloud ks cluster-get --cluster jx-wdc07`
 * Import cluster parameters to your shell environment: `eval $(ibmcloud ks cluster-config --export --cluster jx-wdc07)`
+
+#### Setup Helm / Tiller
+
+CAUTION: This gives Tiller all privileges, do not use it for production environments!
+
+```bash
+    kubectl create serviceaccount --namespace kube-system tiller
+    kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+    # kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'      
+    helm init --service-account tiller --upgrade
+```
 
 #### Setup block storage drivers (Optional)
 
 * Install block storage drives with helm
 
 ```bash
-    helm init
+    # helm init # Unless you already have initialized helm in the setup step before?
     helm repo add ibm  https://registry.bluemix.net/helm/ibm
     helm repo update
     helm install ibm/ibmcloud-block-storage-plugin --name ibmcloud-block-storage-plugin
@@ -111,7 +123,7 @@ NOTE: If you run into problems or want to customize parts of the setup, follow t
 * Alternatively (if included in your plan) you can also choose `ibmc-block-silver` or `ibmc-block-gold` for better IOPS
 
 ```bash
-    kubectl patch storageclass ibmc-block-bronze -p \
+    kubectl patch storageclass ibmc-block-silver -p \
         '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 ```
 
@@ -122,11 +134,13 @@ WARNING: This does not work and needs further testing/investigation!
 Note: There is also a jenkins- addon, may work but never tested with IBM Cloud
 
 ```bash
+# Optional/Sometime necessary? kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.6.1/deploy/manifests/00-crds.yaml
 helm install \
     --namespace=kube-system \
     --name=cert-manager stable/cert-manager \
     --set=ingressShim.defaultIssuerKind=ClusterIssuer \
-    --set=ingressShim.defaultIssuerName=letsencrypt-staging
+    --set=ingressShim.defaultIssuerName=letsencrypt-staging \
+    --version v0.5.2
 cat << EOF| kubectl create -n kube-system -f -
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: ClusterIssuer
@@ -147,17 +161,16 @@ EOF
 * Have your GitHub account at hand,
 * Have your cluster subdomain for the domain flag (example provided) at hand,
 * answer Y to create ingress when asked,
-* Specify `--http=false --tls-acme=true` if you have configured https
 
 ```bash
 jx install cluster --provider=iks \
     --domain='jx-wdc07.us-east.containers.appdomain.cloud' \
-    [ --default-admin-password=<password> ] \ 
-    [ --http=false --tls-acme=true ]
+    [ --default-admin-password=<password> ]
 ```
 
 * wait until done. can check status by doing `kubectl get deployments,services,pvc,pv,ingress -n jx` in another terminal
-* Make sure you can push and pull images into the account you do this in: `ibmcloud cr token-add --non-expiring --readwrite --description "Jenkins-X Token"`
+* Upgrade ingress if you have installed https: `jx upgrade ingress`
+* Make sure you can push and pull images into the account: `ibmcloud cr token-add --non-expiring --readwrite --description "Jenkins-X Token"`
 
 ## Open issues
 
