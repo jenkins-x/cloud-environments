@@ -1,9 +1,6 @@
 chartmuseum: 
   persistence: 
-    Size: 50Gi
-jenkins: 
-  Persistence: 
-    Size: 50Gi
+    size: 50Gi
 monocular: 
   mongodb: 
     persistence: 
@@ -12,3 +9,5 @@ monocular:
 jenkins:
   Agent:
     KubernetesServerURL: "https://kubernetes.default.svc"
+  Persistence:
+    Size: 50Gi
