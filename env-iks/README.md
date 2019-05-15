@@ -1,5 +1,7 @@
 # Base Jenkins X IBM Cloud environment
 
+CAUTION: Current `iks` clusters need `kaniko` if you want to use them for building Docker images in the course of your CI pipeline (which is an essential step to get your applications into your JX k8s cluster). This is not yet implemented, cf. https://github.com/jenkins-x/jx/issues/3971.
+
 ## Prerequisites
 
 * Make yourself familiar with the general Jenkins-X (JX) setup: https://jenkins-x.io/documentation/
@@ -184,7 +186,7 @@ NOTE: This is only a snapshot, check out their state or if others exist meanwhil
 | JX environments are not created automatically                             | [#2985](https://github.com/jenkins-x/jx/issues/2985) |   -   |
 | Cluster registry is not automatically created                             | [#2997](https://github.com/jenkins-x/jx/issues/2997) |   -   |
 | `batch-mode`, `verbose`-Flag etc. not possible                            | [#2996](https://github.com/jenkins-x/jx/issues/2996) |   -   |
-
+| IKS needs `kaniko` to perform builds                                      | [#3971](https://github.com/jenkins-x/jx/issues/3971) |   -   |
 ----
 
 ## Appendix
