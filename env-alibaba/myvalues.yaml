@@ -12,3 +12,6 @@ monocular:
 nexus:
   persistence:
     size: 20Gi
+tekton:
+  pvc:
+    size: 20Gi
