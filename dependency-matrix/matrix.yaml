@@ -3,21 +3,21 @@ dependencies:
   owner: jenkins-x
   repo: jenkins-x-platform
   url: https://github.com/jenkins-x/jenkins-x-platform
-  version: 2.0.850
-  versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.850
+  version: 2.0.851
+  versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.851
 - host: github.com
   owner: jenkins-x
-  repo: jx
+  repo: jenkins-x-builders
   sources:
   - path:
     - host: github.com
       owner: jenkins-x
       repo: jenkins-x-platform
       url: https://github.com/jenkins-x/jenkins-x-platform
-      version: 2.0.850
-      versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.850
-    version: 2.0.466
-    versionURL: https://github.com/jenkins-x/jx/releases/tag/v2.0.466
-  url: https://github.com/jenkins-x/jx
-  version: 2.0.466
-  versionURL: https://github.com/jenkins-x/jx/releases/tag/v2.0.466
+      version: 2.0.851
+      versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.851
+    version: 0.1.572
+    versionURL: https://github.com/jenkins-x/jenkins-x-builders/releases/tag/v0.1.572
+  url: https://github.com/jenkins-x/jenkins-x-builders
+  version: 0.1.572
+  versionURL: https://github.com/jenkins-x/jenkins-x-builders/releases/tag/v0.1.572
