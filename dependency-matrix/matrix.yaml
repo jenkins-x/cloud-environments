@@ -3,8 +3,8 @@ dependencies:
   owner: jenkins-x
   repo: jenkins-x-platform
   url: https://github.com/jenkins-x/jenkins-x-platform
-  version: 2.0.851
-  versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.851
+  version: 2.0.852
+  versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.852
 - host: github.com
   owner: jenkins-x
   repo: jenkins-x-builders
@@ -14,10 +14,58 @@ dependencies:
       owner: jenkins-x
       repo: jenkins-x-platform
       url: https://github.com/jenkins-x/jenkins-x-platform
-      version: 2.0.851
-      versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.851
-    version: 0.1.572
-    versionURL: https://github.com/jenkins-x/jenkins-x-builders/releases/tag/v0.1.572
+      version: 2.0.852
+      versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.852
+    version: 0.1.576
+    versionURL: https://github.com/jenkins-x/jenkins-x-builders/releases/tag/v0.1.576
   url: https://github.com/jenkins-x/jenkins-x-builders
-  version: 0.1.572
-  versionURL: https://github.com/jenkins-x/jenkins-x-builders/releases/tag/v0.1.572
+  version: 0.1.576
+  versionURL: https://github.com/jenkins-x/jenkins-x-builders/releases/tag/v0.1.576
+- host: github.com
+  owner: jenkins-x
+  repo: jenkins-x-builders-ml
+  sources:
+  - path:
+    - host: github.com
+      owner: jenkins-x
+      repo: jenkins-x-platform
+      url: https://github.com/jenkins-x/jenkins-x-platform
+      version: 2.0.852
+      versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.852
+    version: 0.1.566
+    versionURL: https://github.com/jenkins-x/jenkins-x-builders-ml/releases/tag/v0.1.566
+  url: https://github.com/jenkins-x/jenkins-x-builders-ml
+  version: 0.1.566
+  versionURL: https://github.com/jenkins-x/jenkins-x-builders-ml/releases/tag/v0.1.566
+- host: github.com
+  owner: jenkins-x
+  repo: jenkins-x-image
+  sources:
+  - path:
+    - host: github.com
+      owner: jenkins-x
+      repo: jenkins-x-platform
+      url: https://github.com/jenkins-x/jenkins-x-platform
+      version: 2.0.852
+      versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.852
+    version: 0.0.70
+    versionURL: https://github.com/jenkins-x/jenkins-x-image/releases/tag/0.0.70
+  url: https://github.com/jenkins-x/jenkins-x-image
+  version: 0.0.70
+  versionURL: https://github.com/jenkins-x/jenkins-x-image/releases/tag/0.0.70
+- host: github.com
+  owner: jenkins-x
+  repo: jx
+  sources:
+  - path:
+    - host: github.com
+      owner: jenkins-x
+      repo: jenkins-x-platform
+      url: https://github.com/jenkins-x/jenkins-x-platform
+      version: 2.0.852
+      versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.852
+    version: 2.0.474
+    versionURL: https://github.com/jenkins-x/jx/releases/tag/v2.0.474
+  url: https://github.com/jenkins-x/jx
+  version: 2.0.474
+  versionURL: https://github.com/jenkins-x/jx/releases/tag/v2.0.474
