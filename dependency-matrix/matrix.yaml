@@ -3,8 +3,8 @@ dependencies:
   owner: jenkins-x
   repo: jenkins-x-platform
   url: https://github.com/jenkins-x/jenkins-x-platform
-  version: 2.0.863
-  versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.863
+  version: 2.0.864
+  versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.864
 - host: github.com
   owner: jenkins-x
   repo: jenkins-x-builders
@@ -14,13 +14,13 @@ dependencies:
       owner: jenkins-x
       repo: jenkins-x-platform
       url: https://github.com/jenkins-x/jenkins-x-platform
-      version: 2.0.863
-      versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.863
-    version: 0.1.587
-    versionURL: https://github.com/jenkins-x/jenkins-x-builders/releases/tag/v0.1.587
+      version: 2.0.864
+      versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.864
+    version: 0.1.588
+    versionURL: https://github.com/jenkins-x/jenkins-x-builders/releases/tag/v0.1.588
   url: https://github.com/jenkins-x/jenkins-x-builders
-  version: 0.1.587
-  versionURL: https://github.com/jenkins-x/jenkins-x-builders/releases/tag/v0.1.587
+  version: 0.1.588
+  versionURL: https://github.com/jenkins-x/jenkins-x-builders/releases/tag/v0.1.588
 - host: github.com
   owner: jenkins-x
   repo: jx
@@ -30,10 +30,10 @@ dependencies:
       owner: jenkins-x
       repo: jenkins-x-platform
       url: https://github.com/jenkins-x/jenkins-x-platform
-      version: 2.0.863
-      versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.863
-    version: 2.0.491
-    versionURL: https://github.com/jenkins-x/jx/releases/tag/v2.0.491
+      version: 2.0.864
+      versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.864
+    version: 2.0.492
+    versionURL: https://github.com/jenkins-x/jx/releases/tag/v2.0.492
   url: https://github.com/jenkins-x/jx
-  version: 2.0.491
-  versionURL: https://github.com/jenkins-x/jx/releases/tag/v2.0.491
+  version: 2.0.492
+  versionURL: https://github.com/jenkins-x/jx/releases/tag/v2.0.492
