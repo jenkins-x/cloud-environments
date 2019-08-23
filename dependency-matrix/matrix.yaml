@@ -3,5 +3,5 @@ dependencies:
   owner: jenkins-x
   repo: jenkins-x-platform
   url: https://github.com/jenkins-x/jenkins-x-platform.git
-  version: 2.0.964
-  versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.964
+  version: 2.0.965
+  versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.965
