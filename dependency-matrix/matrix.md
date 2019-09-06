@@ -2,4 +2,4 @@
 
 Dependency | Sources | Version | Mismatched versions
 ---------- | ------- | ------- | -------------------
-[jenkins-x/jenkins-x-platform](https://github.com/jenkins-x/jenkins-x-platform.git) |  | [2.0.1106](https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.1106) | 
+[jenkins-x/jenkins-x-platform](https://github.com/jenkins-x/jenkins-x-platform.git) |  | [2.0.1107](https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.1107) | 
