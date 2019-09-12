@@ -2,6 +2,6 @@ dependencies:
 - host: github.com
   owner: jenkins-x
   repo: jenkins-x-platform
-  url: https://github.com/jenkins-x/jenkins-x-platform
-  version: 2.0.1186
-  versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.1186
+  url: https://github.com/jenkins-x/jenkins-x-platform.git
+  version: 2.0.1187
+  versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.1187
