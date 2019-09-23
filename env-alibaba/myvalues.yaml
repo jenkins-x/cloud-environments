@@ -12,6 +12,7 @@ monocular:
 nexus:
   persistence:
     size: 20Gi
-tekton:
-  pvc:
-    size: 20Gi
+# Tekton config
+# Because tekton is installed individually and not part of the platform its config needs to be in the top level
+pvc:
+  size: 20Gi
