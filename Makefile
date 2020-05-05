@@ -1,6 +1,6 @@
 CHART_REPO := http://chartmuseum.jenkins-x.io
 CHART := jenkins-x-platform
-CHART_VERSION := 2.0.2198
+CHART_VERSION := 2.0.2199
 OS := $(shell uname)
 HELM := $(shell command -v helm 2> /dev/null)
 WATCH := $(shell command -v watch --help 2> /dev/null)
