@@ -3,37 +3,5 @@ dependencies:
   owner: jenkins-x
   repo: jenkins-x-platform
   url: https://github.com/jenkins-x/jenkins-x-platform
-  version: 2.0.2410
-  versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.2410
-- host: github.com
-  owner: jenkins-x
-  repo: jenkins-x-builders-base
-  sources:
-  - path:
-    - host: github.com
-      owner: jenkins-x
-      repo: jenkins-x-platform
-      url: https://github.com/jenkins-x/jenkins-x-platform
-      version: 2.0.2410
-      versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.2410
-    version: 0.0.87
-    versionURL: https://github.com/jenkins-x/jenkins-x-builders-base/releases/tag/v0.0.87
-  url: https://github.com/jenkins-x/jenkins-x-builders-base
-  version: 0.0.87
-  versionURL: https://github.com/jenkins-x/jenkins-x-builders-base/releases/tag/v0.0.87
-- host: github.com
-  owner: jenkins-x
-  repo: jenkins-x-builders-ml
-  sources:
-  - path:
-    - host: github.com
-      owner: jenkins-x
-      repo: jenkins-x-platform
-      url: https://github.com/jenkins-x/jenkins-x-platform
-      version: 2.0.2410
-      versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.2410
-    version: 0.1.1317
-    versionURL: https://github.com/jenkins-x/jenkins-x-builders-ml/releases/tag/v0.1.1317
-  url: https://github.com/jenkins-x/jenkins-x-builders-ml
-  version: 0.1.1317
-  versionURL: https://github.com/jenkins-x/jenkins-x-builders-ml/releases/tag/v0.1.1317
+  version: 2.0.2411
+  versionURL: https://github.com/jenkins-x/jenkins-x-platform/releases/tag/v2.0.2411
